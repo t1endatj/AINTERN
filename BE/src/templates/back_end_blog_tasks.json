@@ -1,0 +1,79 @@
+[
+  {
+    "order": 1,
+    "title": "Bài 1 (Blog): Cài đặt Server Express",
+    "requirement": "Khởi tạo một server Express cơ bản. Tạo một route GET '/' trả về JSON { \"message\": \"Blog API đã sẵn sàng!\" }.",
+    "duration": 24,
+    "examples": ["Truy cập http://localhost:3000/ sẽ trả về { \"message\": \"Blog API đã sẵn sàng!\" }"],
+    "testcases": [
+      { "input": "GET /", "output": { "message": "Blog API đã sẵn sàng!" } }
+    ]
+  },
+  {
+    "order": 2,
+    "title": "Bài 2 (Blog): Kết nối MongoDB",
+    "requirement": "Viết và gọi một hàm 'connectDB' sử dụng Mongoose để kết nối đến cơ sở dữ liệu MongoDB của bạn. (Chỉ cần nộp code logic, không cần route).",
+    "duration": 24,
+    "examples": ["Sử dụng 'mongoose.connect(process.env.MONGO_URI)'."],
+    "testcases": []
+  },
+  {
+    "order": 3,
+    "title": "Bài 3 (Blog): Tạo Post Model",
+    "requirement": "Định nghĩa một Mongoose Model tên là 'Post'. Model này phải có các trường: 'title' (String, required), 'content' (String, required), và 'author' (String, default là 'Anonymous').",
+    "duration": 24,
+    "examples": ["Một schema Mongoose với 3 trường: title, content, author."],
+    "testcases": []
+  },
+  {
+    "order": 4,
+    "title": "Bài 4 (Blog): API Tạo Bài viết (CREATE)",
+    "requirement": "Tạo route POST '/api/posts'. API này nhận vào body { \"title\": \"Tiêu đề mới\", \"content\": \"Nội dung mới\" } và lưu nó vào database bằng 'Post' model. Trả về bài viết đã được tạo.",
+    "duration": 48,
+    "examples": ["Input: POST /api/posts với body { \"title\": \"Test\", \"content\": \"Hello\" }", "Output: { \"_id\": \"...\", \"title\": \"Test\", \"content\": \"Hello\", \"author\": \"Anonymous\", ... }"],
+    "testcases": [
+      { "input": "POST /api/posts", "body": {"title": "Test 1", "content": "Content 1"}, "output": {"title": "Test 1", "content": "Content 1"} }
+    ]
+  },
+  {
+    "order": 5,
+    "title": "Bài 5 (Blog): API Lấy tất cả Bài viết (READ)",
+    "requirement": "Tạo route GET '/api/posts'. API này phải truy vấn và trả về một mảng (array) chứa tất cả các bài viết có trong database.",
+    "duration": 24,
+    "examples": ["Output: [ { \"_id\": \"...\", \"title\": \"Test 1\"... }, { \"_id\": \"...\", \"title\": \"Test 2\"... } ]"],
+    "testcases": [
+      { "input": "GET /api/posts", "output": "isArray" }
+    ]
+  },
+  {
+    "order": 6,
+    "title": "Bài 6 (Blog): API Lấy 1 Bài viết (READ)",
+    "requirement": "Tạo route GET '/api/posts/:id'. API này phải lấy 'id' từ params, tìm chính xác bài viết đó trong database và trả về. Nếu không tìm thấy, trả về lỗi 404.",
+    "duration": 24,
+    "examples": ["Input: GET /api/posts/12345 (với id hợp lệ)", "Output: { \"_id\": \"12345\", \"title\": \"Test 1\"... }"],
+    "testcases": [
+      { "input": "GET /api/posts/some_valid_id", "output": "isObject" },
+      { "input": "GET /api/posts/invalid_id", "output": "status404" }
+    ]
+  },
+  {
+    "order": 7,
+    "title": "Bài 7 (Blog): API Cập nhật Bài viết (UPDATE)",
+    "requirement": "Tạo route PUT '/api/posts/:id'. API này lấy 'id' từ params và dữ liệu (title, content) từ body. Tìm và cập nhật bài viết trong database. Trả về bài viết đã được cập nhật.",
+    "duration": 48,
+    "examples": ["Input: PUT /api/posts/12345 với body { \"title\": \"Tiêu đề đã sửa\" }", "Output: { \"_id\": \"12345\", \"title\": \"Tiêu đề đã sửa\"... }"],
+    "testcases": [
+      { "input": "PUT /api/posts/some_valid_id", "body": {"title": "Updated"}, "output": {"title": "Updated"} }
+    ]
+  },
+  {
+    "order": 8,
+    "title": "Bài 8 (Blog): API Xóa Bài viết (DELETE)",
+    "requirement": "Tạo route DELETE '/api/posts/:id'. API này lấy 'id' từ params, tìm và xóa bài viết đó khỏi database. Trả về thông báo thành công.",
+    "duration": 48,
+    "examples": ["Input: DELETE /api/posts/12345", "Output: { \"message\": \"Đã xóa bài viết\" }"],
+    "testcases": [
+      { "input": "DELETE /api/posts/some_valid_id", "output": {"message": "Đã xóa bài viết"} }
+    ]
+  }
+]
