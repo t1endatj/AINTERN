@@ -10,12 +10,21 @@ const InternSchema = new mongoose.Schema({
     },
     specialization: {
         type: String,
-        enum: ['front_end', 'back_end'],
-        required: [true, 'Vui lòng cung cấp chuyên môn (specialization)']
+        enum: ['frontend', 'backend', 'data'],
+        required: false
     },
     level: { 
         type: Number, 
         default: 1 
+    },
+    currentView: {
+        type: String,
+        enum: ['home', 'welcome', 'info', 'dashboard'],
+        default: 'home'
+    },
+    selectedProject: {
+        type: Object,
+        default: null
     },
     createdAt: { 
         type: Date, 

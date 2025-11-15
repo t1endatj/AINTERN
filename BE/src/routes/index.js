@@ -7,19 +7,19 @@ const projectController = require('../controllers/projectController')
 const taskController = require('../controllers/taskController')
 const submissionController = require('../controllers/submissionController')
 const aiController = require('../controllers/aiController')
-const authRoutes = require('./auth')
-// 2. Import middleware 'protect'
+const authController = require('../controllers/authController')
+
+// ✅ 1. Import middleware 'protect'
 const { protect } = require('../middleware/authMiddleware')
 
-// 3. Cấu hình Multer để đọc file vào bộ nhớ
-const upload = multer({ 
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 } // Giới hạn file 5MB
-})
+// Auth - Đăng nhập/Đăng ký
+router.post('/auth/login', authController.loginOrRegister)
 
 // Intern
 router.post('/interns', internController.createIntern)
 router.get('/interns', internController.getAllInterns)
+router.get('/interns/:id', internController.getInternById)
+router.put('/interns/:id', internController.updateIntern)
 
 // Project
 router.post('/projects', protect, projectController.createProject)
