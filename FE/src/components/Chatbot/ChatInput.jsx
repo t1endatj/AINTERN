@@ -37,7 +37,7 @@ export const ChatInput = ({ question, setQuestion, onSubmit, isLoading }) => {
                     className="text-left border border-gray-700 bg-gray-800 rounded-xl px-4 py-3.5 cursor-pointer hover:bg-gray-700 transition flex-1 gap-1 flex flex-col w-full h-auto justify-start items-start"
                     >
                         <span className="font-medium text-white">{suggestedAction.title}</span>
-                        <span className="text-muted-foreground text-gray-400">
+                        <span className=" text-gray-400">
                         {suggestedAction.label}
                         </span>
                     </div>
@@ -70,7 +70,7 @@ export const ChatInput = ({ question, setQuestion, onSubmit, isLoading }) => {
             />
 
             <button 
-                className={cn("flex-shrink-0 w-8 h-8 rounded-full ml-auto transition duration-200", 
+                className={cn("shrink-0 w-8 h-8 rounded-full ml-auto transition duration-200", 
                     question.length > 0 ? 'bg-white hover:bg-gray-100 text-black' : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 )}
                 onClick={() => handleSubmit(question)}

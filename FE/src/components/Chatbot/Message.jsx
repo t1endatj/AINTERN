@@ -20,7 +20,7 @@ export const Message = ({ message }) => {
         className={cn(
           
           'inline-block max-w-[75%] px-4 py-2 rounded-xl text-white', 
-          'break-words',
+          'wrap-break-word',
           isUser
             ? 'ml-auto bg-blue-600 px-4' // User bubble
             : 'mr-auto bg-gray-800 px-4' // Assistant bubble
