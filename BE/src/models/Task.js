@@ -7,18 +7,17 @@ const TaskSchema = new mongoose.Schema({
     requirement: { type: String, required: true },
     examples: { type: Array, default: [] },
 
+    // Thêm trường này để lưu test cases từ template
+    testcases: { type: Array, default: [] },
+
     order: { type: Number, required: true },
 
-    // Task mở khi isLocked = false
     isLocked: { type: Boolean, default: true },
 
-    // thời gian làm task (tính bằng giờ)
     duration: { type: Number, default: 48 }, // 48h
 
-    // Deadline sẽ set khi task được unlock
     deadline: { type: Date },
 
-    // task hết hạn
     isExpired: { type: Boolean, default: false },
 
     status: {

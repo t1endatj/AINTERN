@@ -7,7 +7,7 @@ const projectController = require('../controllers/projectController')
 const taskController = require('../controllers/taskController')
 const submissionController = require('../controllers/submissionController')
 const aiController = require('../controllers/aiController')
-
+const authRoutes = require('./auth')
 // 2. Import middleware 'protect'
 const { protect } = require('../middleware/authMiddleware')
 
@@ -27,8 +27,9 @@ router.get('/projects', projectController.getAllProjects)
 // Task
 router.post('/tasks', taskController.createTask)
 router.get('/projects/:id/tasks', taskController.getTasksByProject)
-
+router.use('/auth', authRoutes);
 // Submission
+
 // 4. Cập nhật route:
 // - Thêm 'protect' (để lấy req.user.id)
 // - Thêm 'upload.single('codeFile')' để xử lý file upload
