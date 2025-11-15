@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const multer = require('multer') // 1. Import multer
 
 const internController = require('../controllers/internController')
 const projectController = require('../controllers/projectController')
@@ -21,27 +22,32 @@ router.get('/interns/:id', internController.getInternById)
 router.put('/interns/:id', internController.updateIntern)
 
 // Project
-// ✅ 2. Thêm 'protect' vào route này
 router.post('/projects', protect, projectController.createProject)
 router.get('/projects', projectController.getAllProjects)
-
 // Task
 router.post('/tasks', taskController.createTask)
 router.get('/projects/:id/tasks', taskController.getTasksByProject)
-
+router.use('/auth', authRoutes);
 // Submission
-router.post('/submissions', submissionController.createSubmission)
-router.get('/tasks/:taskId/submissions', submissionController.getSubmissionsByTask)
 
+// 4. Cập nhật route:
+// - Thêm 'protect' (để lấy req.user.id)
+// - Thêm 'upload.single('codeFile')' để xử lý file upload
+//   (Client cần gửi file dưới tên trường 'codeFile')
+router.post(
+    '/submissions', 
+    protect, 
+    upload.single('codeFile'), 
+    submissionController.createSubmission
+)
+router.get('/tasks/:taskId/submissions', submissionController.getSubmissionsByTask)
 
 
 router.get('/projects/:id/overview', projectController.getProjectOverview)
 router.get('/tasks/:id', taskController.getTaskDetail)
-router.get('/projects/:id/current-task', taskController.getCurrentTask) 
+router.get('/projects/:id/current-task', taskController.getCurrentTask)
 router.get('/interns/:id/projects', projectController.getProjectsByIntern)
 router.get('/tasks/:id/history', submissionController.getSubmissionHistory);
 router.get('/interns/:id/submissions', submissionController.getSubmissionsByIntern)
-
-router.use('/ai', require('./ai')); 
-
+router.use('/ai', require('./ai'));
 module.exports = router
