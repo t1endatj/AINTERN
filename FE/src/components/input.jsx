@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 const TASK_ROLES = [
   { id: 'frontend', label: 'Frontend Developer' },
   { id: 'backend', label: 'Backend Developer' },
-  { id: 'data', label: 'Data/QA Analyst' },
 ];
 
 function Homepage({onStart}) { 
