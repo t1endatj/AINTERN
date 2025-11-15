@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import ProfileImage from '../assets/account.png'; 
 import SubmitCode from './SubmitCode'; 
+import MentorAIPanel from './Chatbot/MentorAI';
 
 const SAMPLE_TASKS = [
   { id: 1, name: 'Thiết kế UI trang chủ', deadline: '15/11/2025', status: 'in-progress', priority: 'high' },
@@ -69,7 +70,7 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
         style={{ background: "radial-gradient(125% 125% at 50% 100%, #000000 40%, #010133 100%)" }}
     >
       {/* sidebar */}
-      <div className="w-64 bg-gray-900 border-r border-gray-800 h-screen p-4 shrink-0 flex flex-col justify-between fixed left-0 top-0">
+      <div className="w-50 bg-gray-900 border-r border-gray-800 h-screen p-4 shrink-0 flex flex-col justify-between fixed left-0 top-0">
         <div>
             <div 
               className="flex items-center gap-3 p-3 cursor-pointer rounded-lg transition border border-transparent hover:border-blue-500 hover:bg-gray-800"
@@ -117,7 +118,7 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       </div>
 
       {/* KHU VỰC NỘI DUNG CHÍNH */}
-    <div className="flex-1 p-6 flex flex-col min-h-0 w-full overflow-x-auto">
+    <div className="flex-1 p-6 flex flex-col min-h-0 w-auto overflow-x-auto">
         {selectedTask ? (
             // 1. HIỂN THỊ GIAO DIỆN NỘP CODE
             <SubmitCode 
@@ -128,7 +129,7 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
             <>
                 <h1 className="text-3xl font-bold text-white mb-6">
                     {activeMenu === 'task' && 'Quản lý Task'}
-                    {activeMenu === 'mentor' && 'Hỗ trợ Mentor AI'}
+                    {activeMenu === 'mentor' && 'Mentor AI'}
                 </h1>
                
                 {activeMenu === 'task' && (
@@ -197,8 +198,8 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
 
                   {/* Mentor AI */}
                   {activeMenu === 'mentor' && (
-                    <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 text-white">
-                        <p className="text-gray-400">Giao diện ChatInput và Chat History (Mentor AI) sẽ được đặt tại đây...</p>
+                    <div className="w-full max-w-4xl h-full flex flex-col min-h-0">
+                        <MentorAIPanel />
                     </div>
                   )}
               </>

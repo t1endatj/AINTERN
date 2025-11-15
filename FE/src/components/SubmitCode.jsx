@@ -39,7 +39,6 @@ export default function SubmitCode({ task, onClose }) {
     };
 
     return (
-        // Modal/Panel chiếm toàn bộ không gian chính của Dashboard
         <div className="w-full h-full p-0 flex flex-col">
             
             {/* HEADER & ĐIỀU HƯỚNG */}
@@ -52,13 +51,13 @@ export default function SubmitCode({ task, onClose }) {
                 <div className="flex space-x-2 bg-gray-800 rounded-lg p-1">
                     <button
                         onClick={() => setSubmissionMode('code')}
-                        className={`px-4 py-2 text-sm rounded-md transition ${submissionMode === 'code' ? 'bg-blue-600 text-black font-semibold' : 'text-gray-400 hover:bg-gray-700'}`}
+                        className={`px-4 py-2 text-sm rounded-md transition ${submissionMode === 'code' ? 'bg-blue-white text-black font-semibold' : 'text-gray-400 hover:bg-gray-700'}`}
                     >
                         Nộp Code
                     </button>
                     <button
                         onClick={() => setSubmissionMode('file')}
-                        className={`px-4 py-2 text-sm rounded-md transition ${submissionMode === 'file' ? 'bg-blue-600 text-black font-semibold' : 'text-gray-400 hover:bg-gray-700'}`}
+                        className={`px-4 py-2 text-sm rounded-md transition ${submissionMode === 'file' ? 'bg-blue-white text-black font-semibold' : 'text-gray-400 hover:bg-gray-700'}`}
                     >
                         Nộp File
                     </button>
@@ -70,17 +69,17 @@ export default function SubmitCode({ task, onClose }) {
             </div>
 
             {/* KHU VỰC CHÍNH (Code và Review) */}
-            <div className="flex gap-4 flex-1 min-h-0">
+            <div className="flex gap-4 flex-1 min-h-0 ">
                 
                 {/* 1. Vùng Code Editor/File Input (Tỷ lệ 40%) */}
-                <div className="w-5/12 bg-gray-900 border border-gray-700 rounded-lg p-3 relative flex flex-col">
+                <div className="flex-[5] bg-gray-900 border border-gray-700 rounded-lg p-3 relative flex flex-col">
                     <h3 className="text-lg font-semibold text-white mb-2">Code Input</h3>
                     
                     {submissionMode === 'code' ? (
                         <textarea 
                             value={codeContent}
                             onChange={(e) => setCodeContent(e.target.value)}
-                            className="flex-1 bg-transparent text-white resize-none outline-none font-mono text-sm leading-relaxed p-2 border border-gray-700 rounded-lg"
+                            className="flex-1 border-dashed border-2 border-gray-600 rounded-lg flex items-center justify-center bg-gray-800/50 text-gray-400"
                             placeholder="Dán mã nguồn của bạn vào đây..."
                             disabled={isSubmitting}
                         />
@@ -104,7 +103,7 @@ export default function SubmitCode({ task, onClose }) {
                 </div>
                 
                 {/* 2. Vùng Review Trả về (Tỷ lệ 60%) */}
-                <div className="w-7/12 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col">
+                <div className="flex-[7] bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col">
                     <h3 className="text-lg font-bold text-[#35C4F0] mb-3 border-b border-gray-800 pb-2">
                         Kết quả Code Review Trả về
                     </h3>
