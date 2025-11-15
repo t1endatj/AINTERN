@@ -97,7 +97,7 @@ Deadline: ${currentTask.deadline ? new Date(currentTask.deadline).toLocaleString
     };
 
     return (
-        <div className="flex flex-col h-full w-full mx-auto min-h-0">
+        <div className="flex flex-col h-full w-full min-h-0">
             
             {/* Lịch sử Chat - GÁN REF CHO CONTAINER CUỘN */}
             <div 

@@ -86,7 +86,7 @@ export default function SubmissionHistory({ task, onClose }) {
                         {submissions.map((submission, index) => (
                             <div 
                                 key={submission._id || index}
-                                className="bg-gray-900 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition"
+                                className="bg-gray-900 w-200 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition"
                             >
                                 {/* Header */}
                                 <div className="flex justify-between items-start mb-3">

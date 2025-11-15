@@ -171,7 +171,7 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       </div>
 
       {/* KHU VỰC NỘI DUNG CHÍNH */}
-    <div className="flex-1 p-6 flex flex-col min-h-0 w-full  overflow-x-auto">
+    <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${selectedTask ? '' : 'p-6'}`}>
         {selectedTask ? (
             viewMode === 'submit' ? (
                 // 1. HIỂN THỊ GIAO DIỆN NỘP CODE
@@ -220,23 +220,23 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
                         {/* KPI Metrics */}
                         {!loading && !error && (
                             <div className="grid grid-cols-4 gap-4">
-                                <div className="bg-gray-900 rounded-lg p-4 border border-blue-600 shadow-lg text-center">
+                                <div className="bg-gray-900 rounded-lg p-4 border  shadow-lg text-center">
                                     <p className="text-sm text-gray-400">Tổng Task</p>
                                     <p className="text-3xl font-bold text-[#35C4F0] mt-2">{tasks.length}</p>
                                 </div>
-                                <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-lg text-center">
+                                <div className="bg-gray-900 rounded-lg p-4 border shadow-lg text-center">
                                     <p className="text-sm text-gray-400">Hoàn thành</p>
                                     <p className="text-3xl font-bold text-green-500 mt-2">
                                         {tasks.filter(t => t.status === 'done').length}
                                     </p>
                                 </div>
-                                <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-lg text-center">
+                                <div className="bg-gray-900 rounded-lg p-4 border shadow-lg text-center">
                                     <p className="text-sm text-gray-400">Đang làm</p>
                                     <p className="text-3xl font-bold text-blue-500 mt-2">
                                         {tasks.filter(t => !t.isLocked && t.status === 'pending').length}
                                     </p>
                                 </div>
-                                <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-lg text-center">
+                                <div className="bg-gray-900 rounded-lg p-4 border  shadow-lg text-center">
                                     <p className="text-sm text-gray-400">Đã khóa</p>
                                     <p className="text-3xl font-bold text-gray-500 mt-2">
                                         {tasks.filter(t => t.isLocked).length}
@@ -295,7 +295,7 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
                                                                 </button>
                                                                 <button 
                                                                     onClick={() => handleViewHistory(task)} 
-                                                                    className="font-medium text-purple-500 hover:text-purple-400 transition"
+                                                                    className="font-medium text-white  transition"
                                                                 >
                                                                     📜 Lịch sử
                                                                 </button>
