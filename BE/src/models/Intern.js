@@ -9,8 +9,13 @@ const InternSchema = new mongoose.Schema({
     name: { 
         type: String, 
         required: true,
-        unique: true, // Đảm bảo tên không trùng
+        unique: true,
         trim: true
+    },
+    specialization: {
+        type: String,
+        enum: ['front_end', 'back_end'],
+        required: [true, 'Vui lòng cung cấp chuyên môn (specialization)']
     },
     level: { 
         type: Number, 
@@ -24,7 +29,11 @@ const InternSchema = new mongoose.Schema({
 
 InternSchema.methods.getSignedJwtToken = function() {
     return jwt.sign(
-        { id: this._id, name: this.name }, // Chỉ cần id và name
+        { 
+            id: this._id, 
+            name: this.name, 
+            specialization: this.specialization 
+        },
         process.env.JWT_SECRET || 'hackathon_secret_key_123', 
         { expiresIn: '30d' }
     );

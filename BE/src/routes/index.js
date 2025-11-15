@@ -7,13 +7,18 @@ const taskController = require('../controllers/taskController')
 const submissionController = require('../controllers/submissionController')
 const aiController = require('../controllers/aiController')
 
+// ✅ 1. Import middleware 'protect'
+const { protect } = require('../middleware/authMiddleware')
+
 // Intern
 router.post('/interns', internController.createIntern)
 router.get('/interns', internController.getAllInterns)
 
 // Project
-router.post('/projects', projectController.createProject)
+// ✅ 2. Thêm 'protect' vào route này
+router.post('/projects', protect, projectController.createProject)
 router.get('/projects', projectController.getAllProjects)
+
 // Task
 router.post('/tasks', taskController.createTask)
 router.get('/projects/:id/tasks', taskController.getTasksByProject)
@@ -26,9 +31,11 @@ router.get('/tasks/:taskId/submissions', submissionController.getSubmissionsByTa
 
 router.get('/projects/:id/overview', projectController.getProjectOverview)
 router.get('/tasks/:id', taskController.getTaskDetail)
-router.get('/p  rojects/:id/current-task', taskController.getCurrentTask)
+router.get('/projects/:id/current-task', taskController.getCurrentTask) 
 router.get('/interns/:id/projects', projectController.getProjectsByIntern)
 router.get('/tasks/:id/history', submissionController.getSubmissionHistory);
 router.get('/interns/:id/submissions', submissionController.getSubmissionsByIntern)
-router.use('/ai', require('./ai'));
+
+router.use('/ai', require('./ai')); 
+
 module.exports = router

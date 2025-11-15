@@ -4,8 +4,7 @@ const path = require('path')
 const unlockTask = require('../utils/unlockTask')
 const Project = require('../models/Project')
 
-
-
+// ... (Hàm getProjectOverview giữ nguyên) ...
 exports.getProjectOverview = async (req, res) => {
     try {
         const project = await Project.findById(req.params.id)
@@ -13,7 +12,6 @@ exports.getProjectOverview = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Project không tồn tại' })
         }
 
-        // Lấy toàn bộ task thuộc project
         const tasks = await Task.find({ projectId: project._id })
 
         const totalTasks = tasks.length
@@ -23,7 +21,6 @@ exports.getProjectOverview = async (req, res) => {
             ? 0 
             : Math.round((doneTasks / totalTasks) * 100)
 
-        // Tính thời gian còn lại
         const now = new Date()
         const endDate = new Date(project.startDate.getTime() + project.duration * 24 * 60 * 60 * 1000)
         let remainingMs = endDate - now
@@ -51,29 +48,30 @@ exports.getProjectOverview = async (req, res) => {
 }
 exports.createProject = async (req, res) => {
     try {
-        // 1) Lấy specialization từ body
-        const { internId, title, specialization, duration } = req.body;
-
+        // 1) Lấy specialization TỪ NGƯỜI DÙNG ĐÃ XÁC THỰC
+        // req.user được thêm vào từ middleware 'protect'
+        const specialization = req.user.specialization;
+        
         if (!specialization) {
-            return res.status(400).json({ success: false, message: 'Vui lòng chọn chuyên môn (specialization: front_end hoặc back_end)' });
+            return res.status(400).json({ success: false, message: 'Người dùng không có chuyên môn. Vui lòng đăng nhập lại.' });
         }
 
-        // 2) Tạo project với chuyên môn đã chọn
+        const { internId, title, duration } = req.body;
+        
+        // 2) Tạo project với chuyên môn đã lấy từ req.user
         const project = await Project.create({
-            internId,
+            internId, // Vẫn cần internId để liên kết
             title,
-            specialization,
+            specialization, // Lấy từ req.user
             duration
         });
 
-        // 3) ✅ Load template tasks DỰA TRÊN CHUYÊN MÔN
-        // Quyết định file template nào sẽ được load
-        const templateName = `${specialization.toLowerCase()}_tasks.json`; // Ví dụ: 'front_end_tasks.json'
+        // 3) Load template tasks DỰA TRÊN CHUYÊN MÔN
+        const templateName = `${specialization.toLowerCase()}_tasks.json`;
         const templatePath = path.join(__dirname, '../templates', templateName);
 
         if (!fs.existsSync(templatePath)) {
-            // Nếu file template (vd: front_end_tasks.json) không tồn tại
-             await Project.findByIdAndDelete(project._id); // Xóa project vừa tạo
+             await Project.findByIdAndDelete(project._id); 
              return res.status(404).json({ success: false, message: `Không tìm thấy file template cho chuyên môn: ${templateName}` });
         }
         
@@ -90,8 +88,8 @@ exports.createProject = async (req, res) => {
                 examples: t.examples,
                 order: t.order,
                 duration: t.duration,
-                testcases: t.testcases, // Tạm thời để trống nếu test case nằm ở Python
-                isLocked: t.order !== 1   // task 1 mở, các task khác khóa
+                testcases: t.testcases, 
+                isLocked: t.order !== 1 
             })
             tasks.push(newTask)
         }
@@ -139,7 +137,6 @@ exports.getAllProjects = async (req, res) => {
                 ? 0 
                 : Math.round((doneTasks / totalTasks) * 100)
 
-            // thời gian còn lại
             const now = Date.now()
             const endDate = new Date(project.startDate).getTime() + project.duration * 24 * 60 * 60 * 1000
             let remainingMs = endDate - now
