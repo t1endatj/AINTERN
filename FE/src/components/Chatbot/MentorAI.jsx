@@ -1,5 +1,5 @@
 // File: src/components/MentorAIPanel.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { ChatInput } from './ChatInput';
 import { Message } from './Message'; // Component Message đã tạo
 
