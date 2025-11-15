@@ -12,7 +12,9 @@ const app = express()
 
 app.use(cors({
     origin: 'http://localhost:5173', // Chấp nhận request từ Frontend
-    methods: ['POST'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Cho phép tất cả methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Cho phép headers
+    credentials: true // Cho phép cookies/credentials
 }));
 app.use(express.json())
 const routes = require('./routes')

@@ -21,26 +21,31 @@ export default function MentorAIPanel() {
         setMessages(prev => [...prev, userMessage]);
         setIsLoading(true);
 
-        
-        setQuestion(''); 
-        
         try {
-            // DÙNG ĐƯỜNG DẪN CỔNG 3000 CHO NODE.JS PROXY
-            const response = await fetch('http://127.0.0.1:3000/api/ai/chat', { 
+            // Lấy token từ localStorage
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Vui lòng đăng nhập lại!');
+            }
+
+            const response = await fetch('http://localhost:3000/api/ai/chat', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ message: messageText }),
             });
 
+            // Xử lý lỗi HTTP trước khi parse JSON
             if (!response.ok) { 
-                throw new Error(`Lỗi HTTP ${response.status}: Vui lòng kiểm tra Server Python.`);
+                throw new Error(`Lỗi HTTP ${response.status}: Vui lòng kiểm tra Server Backend/AI Engine.`);
             }
             
             const data = await response.json();
+            console.log('📥 AI response:', data);
             
-            // ĐỌC TRƯỜNG 'reply' TỪ CONTROLLER
+            // Đọc trường 'reply' từ aiController.js
             const aiResponse = { 
                 id: Date.now() + 1, 
                 role: 'assistant', 
@@ -49,13 +54,15 @@ export default function MentorAIPanel() {
             setMessages(prev => [...prev, aiResponse]);
 
         } catch (error) {
-            console.error('Error sending message:', error);
-            // Hiển thị lỗi ra giao diện
-            setMessages(prev => [...prev, { 
-                id: Date.now() + 2, 
+            console.error('❌ Error sending message:', error);
+            
+            // Hiển thị lỗi cho user
+            const errorMessage = { 
+                id: Date.now() + 1, 
                 role: 'assistant', 
-                content: `LỖI KẾT NỐI: ${error.message}` 
-            }]);
+                content: `❌ Lỗi: ${error.message}\n\nKiểm tra:\n- Backend có chạy không? (port 3000)\n- AI Engine có chạy không? (port 8000)\n- Token còn hợp lệ không?`, 
+            };
+            setMessages(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
         }

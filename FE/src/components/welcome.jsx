@@ -103,6 +103,8 @@ function Welcome({ internData, onProjectSubmit }) {
                     name: proj.name,
                     description: proj.description,
                     technologies: proj.technologies,
+                    templateName: proj.templateName, // ✅ Thêm templateName
+                    taskCount: proj.taskCount,
                     percent: 0
                 }));
 

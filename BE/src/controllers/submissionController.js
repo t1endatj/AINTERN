@@ -43,15 +43,34 @@ exports.createSubmission = async (req, res) => {
         // -----------------------------------------------------
         // 📌 1) Gửi code (đã đọc từ file) sang Python
         // -----------------------------------------------------
-        const aiResp = await aiService.callAiCheckCode({
-            code: codeContent, // 4. Gửi nội dung code
-            task_id: task._id.toString()
-        })
+        let aiResp, review, passed, feedback, score;
+        
+        try {
+            // Tạo template string từ requirement + examples
+            const templateString = `
+YÊU CẦU:
+${task.requirement}
 
-        const review = aiResp.review;
-        const passed = review.passed
-        const feedback = review.feedback
-        const score = review.score
+CODE MẪU:
+${task.examples.join('\n\n---\n\n')}
+            `.trim();
+
+            aiResp = await aiService.callAiCheckCode({
+                code: codeContent, // 4. Gửi nội dung code
+                template: templateString // 5. Gửi template từ task
+            })
+
+            review = aiResp.review;
+            passed = review.passed
+            feedback = review.feedback
+            score = review.score
+        } catch (aiError) {
+            console.error('❌ AI Service Error:', aiError.message);
+            return res.status(500).json({
+                success: false,
+                message: `Lỗi AI Engine: ${aiError.message}. Vui lòng kiểm tra Python server có chạy không (port 8000)?`
+            });
+        }
         // -----------------------------------------------------
 
         // 📌 2) Lưu submission
