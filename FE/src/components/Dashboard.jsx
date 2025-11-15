@@ -11,7 +11,7 @@ const SAMPLE_TASKS = [
   { id: 5, name: 'Tối ưu performance', deadline: '22/11/2025', status: 'todo', priority: 'medium' },
 ];
 
-export default function Dashboard({ project, internData, onBackToInfo }) {
+export default function Dashboard({ project, internData, onBackToInfo, onLogout }) {
   const [activeMenu, setActiveMenu] = useState('task'); // Đặt mặc định là 'task'
   const [tasks] = useState(SAMPLE_TASKS);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -91,9 +91,15 @@ export default function Dashboard({ project, internData, onBackToInfo }) {
                 </button>
             </div>
         </div>
-        <div className="text-xs text-gray-500 p-3 border-t border-gray-800">
+        <div className="text-xs text-gray-500 p-3 border-t border-gray-800 space-y-2">
             <p>Vị trí: {internData?.role.toUpperCase() || 'DEVELOPER'}</p>
-            <p className="mt-1">AINTERN v1.0</p>
+            <p>AINTERN v1.0</p>
+            <button
+              onClick={onLogout}
+              className="w-full mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition"
+            >
+              Đăng xuất
+            </button>
         </div>
       </div>
 
