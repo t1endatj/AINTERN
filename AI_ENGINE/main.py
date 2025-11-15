@@ -1,15 +1,33 @@
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import time
+from typing import Optional
+import os
+from dotenv import load_dotenv
 
-# IMPORT CÁC MODULE XỬ LÝ (mentor.py và review.py)
+# 1. Tải .env và Đọc Key
+load_dotenv()
+HF_API_KEY = os.getenv("HF_TOKEN")
+if not HF_API_KEY:
+    print("LỖI: Không tìm thấy HF_TOKEN trong file .env của AI_ENGINE")
+    # (Trong sản phẩm thực tế, bạn nên dừng server ở đây)
+
+
+# 2. IMPORT CÁC MODULE XỬ LÝ
 try:
-    # Đảm bảo các file này nằm cùng cấp với main.py
-    from mentor import chat_with_bot
-    from review import review_with_bot, layTemplateTrongFileTask
+    # Import các hàm xử lý
+    from mentor import chat_with_bot, init_mentor_client
+    from review import review_with_bot, layTemplateTrongFileTask, init_review_client
+    
+    # KHỞI TẠO CLIENT (Truyền key vào)
+    init_mentor_client(HF_API_KEY)
+    init_review_client(HF_API_KEY)
+    
 except ImportError as e:
-    # Lỗi sẽ được in ra terminal nếu không tìm thấy file
     print(f"LỖI: Không tìm thấy mentor.py hoặc review.py. {e}")
+except Exception as e:
+    print(f"LỖI: Không thể khởi tạo AI Clients. Kiểm tra API Key: {e}")
 
 
 # ===================================================================
@@ -17,75 +35,64 @@ except ImportError as e:
 # ===================================================================
 app = FastAPI()
 
-# MODEL CHAT: Nhận JSON { "message": "..." }
+# MODEL CHAT
 class ChatPayload(BaseModel):
     message: str
+    context: Optional[str] = None 
 
-# MODEL CODE: Nhận JSON { "code": "...", "task_id": "..." }
+# MODEL CODE
 class CodePayload(BaseModel):
     code: str
     task_id: str 
 
-# ===================================================================
-# ENDPOINTS (LUỒNG POST TRẢ VỀ NGAY)
-# ===================================================================
 
-# -------------------------------------------------------------------
-# 1. Endpoint: Chatbot Mentor (POST /send_chat)
-# -------------------------------------------------------------------
 @app.post("/send_chat")
 async def send_chat_to_py(data: ChatPayload): 
-    """ Nhận tin nhắn, gọi hàm xử lý AI, và trả kết quả ngay lập tức. """
     user_message = data.message
-    print(f"[{time.strftime('%H:%M:%S')}] Nhận Chat: {user_message}")
+    context = data.context
     
+    print(f"[{time.strftime('%H:%M:%S')}] Nhận Chat: {user_message}")
+
     try:
-        # Gọi hàm xử lý từ mentor.py
-        bot_response = chat_with_bot(user_message)
-        
-        # Trả về JSON { "answer": "..." }
+        bot_response = chat_with_bot(user_message, context)
         return {"answer": bot_response}
         
     except Exception as e:
-        print(f"Lỗi khi gọi Mentor Bot: {e}")
-        # Trả về lỗi 500 nếu có vấn đề
-        raise HTTPException(status_code=500, detail="Lỗi: AI Mentor không phản hồi.")
-
-
-# -------------------------------------------------------------------
-# 2. Endpoint: Chấm Code (POST /send_code)
-# -------------------------------------------------------------------
+        print(f"LỖI CHI TIẾT (Mentor Bot): {str(e)}") 
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Lỗi: AI Mentor không phản hồi. Chi tiết: {str(e)}"
+        )
 @app.post("/send_code")
 async def send_code_to_py(data: CodePayload):
-    """ Nhận code và task_id, chạy review và trả kết quả ngay lập tức. """
     code_content = data.code
     task_id = data.task_id
     print(f"[{time.strftime('%H:%M:%S')}] Nhận Code cho Task {task_id}")
 
     try:
-        # Lấy template từ file task tương ứng
         template_content = layTemplateTrongFileTask(task_id)
         
-        # Gọi hàm review từ review.py (gọi Hugging Face API)
-        review_text = review_with_bot(code_content, template_content)
+        # Gọi hàm chấm điểm
+        review_result_text = review_with_bot(code_content, template_content)
         
-        # Giả lập phân tích kết quả từ review_text 
-        # (Bạn có thể cần làm logic này phức tạp hơn)
-        passed = "Kết luận: Pass" in review_text or "Kết luận: Đạt" in review_text
-        score = 100 if passed else 0
+      
         
-        # Trả về JSON { "review": {...} }
+        # (Tạm thời, chúng ta sẽ trả về text thô cho đến khi sửa review.py)
+        # TODO: Sửa logic review_with_bot để trả về dict
+        
+       
+        
+        # Giả định: review_with_bot trả về 1 dict (sửa ở bước 2)
         return {
-            "review": {
-                "passed": passed,
-                "score": score,
-                "feedback": review_text 
-            }
+            "review": review_result_text # Sẽ sửa hàm review_with_bot ở bước 2
         }
         
     except FileNotFoundError:
         print(f"Lỗi: Không tìm thấy file template task '{task_id}'.")
         raise HTTPException(status_code=404, detail=f"Lỗi: Không tìm thấy file template task '{task_id}'.")
     except Exception as e:
-        print(f"Lỗi khi gọi Review Bot: {e}")
-        raise HTTPException(status_code=500, detail="Lỗi: AI Review không phản hồi.")
+        print(f"LỖI CHI TIẾT (Review Bot): {str(e)}") 
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Lỗi: AI Review không phản hồi. Chi tiết: {str(e)}"
+        )
