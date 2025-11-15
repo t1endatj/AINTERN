@@ -72,7 +72,7 @@ export default function SubmitCode({ task, onClose }) {
             <div className="flex gap-4 flex-1 min-h-0 ">
                 
                 {/* 1. Vùng Code Editor/File Input (Tỷ lệ 40%) */}
-                <div className="flex-[5] bg-gray-900 border border-gray-700 rounded-lg p-3 relative flex flex-col">
+                <div className="flex-5 bg-gray-900 border border-gray-700 rounded-lg p-3 relative flex flex-col">
                     <h3 className="text-lg font-semibold text-white mb-2">Code Input</h3>
                     
                     {submissionMode === 'code' ? (
@@ -103,7 +103,7 @@ export default function SubmitCode({ task, onClose }) {
                 </div>
                 
                 {/* 2. Vùng Review Trả về (Tỷ lệ 60%) */}
-                <div className="flex-[7] bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col">
+                <div className="flex-7 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col">
                     <h3 className="text-lg font-bold text-[#35C4F0] mb-3 border-b border-gray-800 pb-2">
                         Kết quả Code Review Trả về
                     </h3>

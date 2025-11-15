@@ -79,7 +79,7 @@ function App() {
   const handleSelectStart = async (name, role) => {
     // Gọi API login/register với username và specialization
     try {
-      const response = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch('http://localhost:3000/api/auth/loginOrRegister', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,15 +144,15 @@ function App() {
     console.log('📦 State updated - selectedProject:', selectedProject);
     console.log('📦 internData before update:', internData);
     
-    // Lưu project đã chọn vào database và chuyển sang Info
+    // Lưu project đã chọn vào database và chuyển TRỰC TIẾP sang Dashboard
     await updateInternState({
       selectedProject,
-      currentView: 'info'
+      currentView: 'dashboard'  // Đổi từ 'info' sang 'dashboard'
     });
     
-    console.log('✅ Database updated, now setting view to info');
-    setView('info');
-    console.log('✅ View state set to info');
+    console.log('✅ Database updated, now setting view to dashboard');
+    setView('dashboard');  // Đổi từ 'info' sang 'dashboard'
+    console.log('✅ View state set to dashboard');
   };
 
   const handleProjectClick = async (project) => {

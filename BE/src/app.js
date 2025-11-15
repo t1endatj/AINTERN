@@ -10,7 +10,10 @@ connectDB()
 
 const app = express()
 
-app.use(cors())
+app.use(cors({
+    origin: 'http://localhost:5173', // Chấp nhận request từ Frontend
+    methods: ['POST'],
+}));
 app.use(express.json())
 const routes = require('./routes')
 app.use('/api', routes)

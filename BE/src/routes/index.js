@@ -1,6 +1,8 @@
 const express = require('express')
 const router = express.Router()
-const multer = require('multer') // 1. Import multer
+const authRoutes = require('./auth');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
 const internController = require('../controllers/internController')
 const projectController = require('../controllers/projectController')

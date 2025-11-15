@@ -1,51 +1,130 @@
 import React, { useState } from 'react';
 
-const PROJECT_OPTIONS = [
+// Frontend Projects - 3 projects
+const PROJECT_OPTIONS_FE = [
     { 
-        id: 'alpha', 
-        name: 'Project Alpha (E-commerce UI)', 
-        description: 'Xây dựng giao diện trang chủ, chi tiết sản phẩm và giỏ hàng theo Design System. Tập trung vào tính tương tác và khả năng responsive.', 
-        technologies: ['React', 'Tailwind CSS', 'API Mocking'] 
+        id: 'landingPage',
+        templateName: 'landingPage',
+        name: 'Landing Page Website', 
+        description: 'Xây dựng trang Landing Page hoàn chỉnh từ Header, Hero, Features, Services, Contact đến Footer. 7 tasks về HTML/CSS responsive.', 
+        technologies: ['HTML5', 'CSS3', 'Bootstrap Icons'],
+        duration: '7 tasks - 24 giờ/task',
+        totalTasks: 7
     },
     { 
-        id: 'beta', 
-        name: 'Project Beta (Task Management App)', 
-        description: 'Tạo các components như Task Card, Form nhập liệu, và bộ lọc trạng thái cho ứng dụng quản lý công việc.', 
-        technologies: ['Vue.js', 'SCSS', 'State Management (Pinia/Redux)'] 
+        id: 'netflixTasks',
+        templateName: 'netflixTasks',
+        name: 'Netflix Clone Interface', 
+        description: 'Tạo giao diện Netflix Clone với Hero showcase, Feature sections, FAQ và Footer. 4 tasks về visual design.', 
+        technologies: ['HTML5', 'CSS3', 'Font Awesome'],
+        duration: '4 tasks - 24-48 giờ/task',
+        totalTasks: 4
     },
     { 
-        id: 'gamma', 
-        name: 'Project Gamma (Internal Component Library)', 
-        description: 'Đóng gói các UI components cơ bản (Button, Input, Modal) và viết documentation bằng Storybook.', 
-        technologies: ['Storybook', 'Styled Components', 'TypeScript'] 
+        id: 'simpleBlog',
+        templateName: 'simpleBlog',
+        name: 'Simple Blog Website', 
+        description: 'Xây dựng blog cá nhân SimpleBlog với Header, Hero, Posts, Topics và Newsletter. 4 tasks về responsive design.', 
+        technologies: ['HTML5', 'CSS3', 'Ionicons', 'Google Fonts'],
+        duration: '4 tasks - 24-48 giờ/task',
+        totalTasks: 4
+    },
+];
+
+// Backend Projects - 1 project
+const PROJECT_OPTIONS_BE = [
+    { 
+        id: 'blog',
+        templateName: 'blog',
+        name: 'Blog RESTful API (CRUD)', 
+        description: 'Xây dựng RESTful API hoàn chỉnh cho hệ thống blog. 8 tasks bao gồm: Setup Express, MongoDB, tạo Model và CRUD operations.', 
+        technologies: ['Node.js', 'Express.js', 'MongoDB', 'Mongoose'],
+        duration: '8 tasks - 24-48 giờ/task',
+        totalTasks: 8
     },
 ];
 
 function Welcome({ internData, onProjectSubmit }) {
     const [step, setStep] = useState(1); 
     const [selectedProjectId, setSelectedProjectId] = useState(null);
+    const [isCreating, setIsCreating] = useState(false);
 
     const handleNext = () => {
         setStep(2);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!selectedProjectId) {
             alert('Vui lòng chọn một dự án để bắt đầu!');
             return;
         }
 
-        // Tìm đối tượng dự án đã chọn
-        const selectedProject = PROJECT_OPTIONS.find(p => p.id === selectedProjectId);
-        
-        // Gọi callback và truyền cả danh sách dự án + dự án đã chọn
-        if (typeof onProjectSubmit === 'function') {
-            onProjectSubmit({ selectedProject, allProjects: PROJECT_OPTIONS });
+        setIsCreating(true);
+
+        try {
+            // Chọn đúng danh sách dự án theo role
+            const projectList = internData.specialization === 'front_end' ? PROJECT_OPTIONS_FE : PROJECT_OPTIONS_BE;
+            const projectTemplate = projectList.find(p => p.id === selectedProjectId);
+            
+            console.log('🚀 Creating project:', projectTemplate.name);
+            console.log('📋 Template:', projectTemplate.templateName);
+            
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:3000/api/projects', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    internId: internData._id,
+                    title: projectTemplate.name,
+                    templateName: projectTemplate.templateName,
+                    duration: 30
+                })
+            });
+
+            const result = await response.json();
+            console.log('📥 Project created:', result);
+
+            if (result.success) {
+                const createdProject = {
+                    ...result.project,
+                    id: result.project._id,
+                    name: result.project.title,
+                    description: projectTemplate.description,
+                    technologies: projectTemplate.technologies,
+                    percent: 0
+                };
+
+                // Map tất cả projects với đầy đủ thông tin
+                const allProjectsWithDetails = projectList.map(proj => ({
+                    id: proj.id,
+                    name: proj.name,
+                    description: proj.description,
+                    technologies: proj.technologies,
+                    percent: 0
+                }));
+
+                if (typeof onProjectSubmit === 'function') {
+                    onProjectSubmit({ 
+                        selectedProject: createdProject, 
+                        allProjects: allProjectsWithDetails
+                    });
+                }
+            } else {
+                alert(`Lỗi tạo project: ${result.message || 'Unknown error'}`);
+                setIsCreating(false);
+            }
+        } catch (error) {
+            console.error('❌ Error creating project:', error);
+            alert('Không thể kết nối đến server. Vui lòng kiểm tra backend.');
+            setIsCreating(false);
         }
     };
 
-    // Lọc dự án 
-    const filteredProjects = PROJECT_OPTIONS.filter(() => true); 
+    // Chọn danh sách dự án theo role
+    const filteredProjects = internData.specialization === 'front_end' ? PROJECT_OPTIONS_FE : PROJECT_OPTIONS_BE; 
 
     // Nội dung của Slide 1
     const Slide1 = (
@@ -55,9 +134,9 @@ function Welcome({ internData, onProjectSubmit }) {
             </h2>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto">
                 Bạn đã sẵn sàng cho thử thách thực tập vị trí <span className="font-bold text-green-400">
-                    {internData.specialization === 'frontend' ? 'Frontend Developer' : 
-                     internData.specialization === 'backend' ? 'Backend Developer' : 
-                     'Data Analyst'}
+                    {internData.specialization === 'front_end' ? 'Frontend Developer' : 
+                     internData.specialization === 'back_end' ? 'Backend Developer' : 
+                     'Full Stack Developer'}
                 </span> với chương trình mô phỏng **AINTERN**.
             </p>
 
@@ -94,7 +173,7 @@ function Welcome({ internData, onProjectSubmit }) {
             </p>
 
             {/* DANH SÁCH DỰ ÁN */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2">
                 {filteredProjects.map((project) => (
                     <label 
                         key={project.id} 
@@ -109,9 +188,12 @@ function Welcome({ internData, onProjectSubmit }) {
                                 }`}
                         >
                             <div className="flex justify-between items-start">
-                                <div>
+                                <div className="flex-1">
                                     <h4 className="text-xl font-bold text-white">{project.name}</h4>
                                     <p className="text-sm text-gray-400 mt-1 line-clamp-2">{project.description}</p>
+                                    <p className="text-xs text-blue-300 mt-2">
+                                        ⏱️ {project.duration} • 📋 {project.totalTasks} tasks
+                                    </p>
                                 </div>
                                 <input 
                                     type="radio" 
@@ -139,10 +221,10 @@ function Welcome({ internData, onProjectSubmit }) {
               
                 <button 
                     onClick={handleSubmit} 
-                    disabled={!selectedProjectId} // Chỉ kích hoạt khi đã chọn
+                    disabled={!selectedProjectId || isCreating}
                     className="relative inline-block p-px font-semibold leading-6 text- bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
                 >
-                    Submit
+                    {isCreating ? '⏳ Đang tạo project...' : 'Submit'}
                 </button>
             </div>
         </div>
