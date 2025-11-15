@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'; 
 import { ChatInput } from './ChatInput';
 import { Message } from './Message'; 
-import { useScrollToBottom } from '../../lib/use-scroll-to-bottom'; 
+import { useScrollToBottom } from '../../lib/use-scroll-to-bottom.jsx'; 
 
 export default function MentorAIPanel() {
     const [messages, setMessages] = useState([]);
@@ -74,7 +74,7 @@ export default function MentorAIPanel() {
             {/* Lịch sử Chat - GÁN REF CHO CONTAINER CUỘN */}
             <div 
                 ref={messagesContainerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-8 min-h-0"
+                className="flex-1 overflow-y-auto p-4 space-y-8 min-h-0 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
             >
                 {messages.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-full text-center p-8">
