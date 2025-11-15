@@ -1,0 +1,23 @@
+[
+  {
+    "order": 1,
+    "title": "Bài 1: Làm quen JavaScript",
+    "requirement": "Viết hàm trả về Hello World.",
+    "duration": 24,
+    "examples": ["Input: none → Output: Hello World"],
+    "testcases": [
+      { "input": [], "output": "Hello World" }
+    ]
+  },
+  {
+    "order": 2,
+    "title": "Bài 2: Tính tổng",
+    "requirement": "Viết hàm sum(a,b) trả về tổng hai số.",
+    "duration": 48,
+    "examples": ["1 + 2 = 3"],
+    "testcases": [
+      { "input": [1,2], "output": 3 },
+      { "input": [-1,5], "output": 4 }
+    ]
+  }
+]
