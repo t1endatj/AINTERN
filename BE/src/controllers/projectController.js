@@ -56,15 +56,15 @@ exports.createProject = async (req, res) => {
         }
 
         // 2) Lấy dữ liệu từ body
-        // THAY ĐỔI: Thêm 'templateName'
         const { internId, title, duration, templateName } = req.body;
         
-        // THAY ĐỔI: Kiểm tra templateName
+        console.log('🔍 Creating project with:', { specialization, templateName, internId, title });
+        
         if (!templateName) {
-            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp "templateName" (ví dụ: "calculator", "clock")' });
+            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp "templateName"' });
         }
 
-        // 3) Tạo project (vẫn như cũ)
+        // 3) Tạo project
         const project = await Project.create({
             internId, 
             title,
@@ -72,19 +72,26 @@ exports.createProject = async (req, res) => {
             duration
         });
 
-        // 4) Load template tasks DỰA TRÊN CHUYÊN MÔN + TÊN TEMPLATE
-        // THAY ĐỔI: Logic tạo tên file
-        const fileName = `${specialization.toLowerCase()}_${templateName.toLowerCase()}_tasks.json`;
-        // Ví dụ: "back_end_calculator_tasks.json"
+        // 4) Load template tasks - Map specialization và giữ nguyên templateName
+        const specializationMap = {
+            'frontend': 'front_end',
+            'backend': 'back_end'
+        };
+        const mappedSpecialization = specializationMap[specialization.toLowerCase()] || specialization.toLowerCase();
         
+        // KHÔNG lowercase templateName để giữ nguyên camelCase (landingPage, netflixTasks, simpleBlog)
+        const fileName = `${mappedSpecialization}_${templateName}_tasks.json`;
         const templatePath = path.join(__dirname, '../templates', fileName);
+        
+        console.log('📁 Looking for template file:', fileName);
+        console.log('📂 Full path:', templatePath);
 
         if (!fs.existsSync(templatePath)) {
-             // Nếu không tìm thấy file, xóa project vừa tạo
              await Project.findByIdAndDelete(project._id); 
+             console.error('❌ Template file not found:', fileName);
              return res.status(404).json({ 
                  success: false, 
-                 message: `Không tìm thấy file template cho: ${fileName}` 
+                 message: `Không tìm thấy file template: ${fileName}` 
              });
         }
         
@@ -119,7 +126,12 @@ exports.createProject = async (req, res) => {
         })
 
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message })
+        console.error('❌ Error creating project:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Unknown error',
+            error: error.message 
+        })
     }
 }
 

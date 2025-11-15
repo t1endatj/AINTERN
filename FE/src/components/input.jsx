@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 const TASK_ROLES = [
-  { id: 'frontend', label: 'Frontend Developer' },
-  { id: 'backend', label: 'Backend Developer' },
+  { id: 'front_end', label: 'Frontend Developer' },
+  { id: 'back_end', label: 'Backend Developer' },
 ];
 
 function Homepage({onStart}) { 
