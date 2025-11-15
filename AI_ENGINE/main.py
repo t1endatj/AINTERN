@@ -33,24 +33,25 @@ class CodePayload(BaseModel):
 # -------------------------------------------------------------------
 # 1. Endpoint: Chatbot Mentor (POST /send_chat)
 # -------------------------------------------------------------------
+# AI_ENGINE/main.py (Phần Endpoint: Chatbot Mentor)
+
 @app.post("/send_chat")
 async def send_chat_to_py(data: ChatPayload): 
     """ Nhận tin nhắn, gọi hàm xử lý AI, và trả kết quả ngay lập tức. """
     user_message = data.message
-    print(f"[{time.strftime('%H:%M:%S')}] Nhận Chat: {user_message}")
-    
+    current_task = data.taskContext # Lấy thông tin task mới
+    print(f"[{time.strftime('%H:%M:%S')}] Nhận Chat: {user_message} (Task: {current_task.title})")
+
     try:
-        # Gọi hàm xử lý từ mentor.py
-        bot_response = chat_with_bot(user_message)
-        
+        # GỌI HÀM XỬ LÝ: Cần cập nhật mentor.py để nhận thêm 1 tham số
+        # Truyền requirement để AI có thể dựa vào đó tư vấn
+        bot_response = chat_with_bot(user_message, current_task.requirement) 
+
         # Trả về JSON { "answer": "..." }
         return {"answer": bot_response}
-        
-    except Exception as e:
-        print(f"Lỗi khi gọi Mentor Bot: {e}")
-        # Trả về lỗi 500 nếu có vấn đề
-        raise HTTPException(status_code=500, detail="Lỗi: AI Mentor không phản hồi.")
 
+    except Exception as e:
+        # ...
 
 # -------------------------------------------------------------------
 # 2. Endpoint: Chấm Code (POST /send_code)
@@ -89,3 +90,20 @@ async def send_code_to_py(data: CodePayload):
     except Exception as e:
         print(f"Lỗi khi gọi Review Bot: {e}")
         raise HTTPException(status_code=500, detail="Lỗi: AI Review không phản hồi.")
+    # AI_ENGINE/main.py (Phần CONFIGURATION & DATA MODELS)
+
+# MODEL CHO NGỮ CẢNH TASK
+class TaskContext(BaseModel):
+    title: str
+    requirement: str
+    taskId: str
+
+# MODEL CHAT CẬP NHẬT: Nhận JSON { "message": "...", "taskContext": { ... } }
+class ChatPayload(BaseModel):
+    message: str
+    taskContext: TaskContext # Thêm trường này
+
+# MODEL CODE (Giữ nguyên)
+class CodePayload(BaseModel):
+    code: str
+    task_id: str

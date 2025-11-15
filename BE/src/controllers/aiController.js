@@ -1,19 +1,47 @@
 const aiService = require('../services/aiService'); // ✅ Lấy Service Layer
-
+const Task = require('../models/Task'); // Thêm dòng này
 /**
  * Endpoint cho Chatbot Mentor: 
  * Gửi message đến Python Engine /send_chat
- */
+ */// BE/src/controllers/aiController.js (Chỉ phần hàm exports.mentorChat)
+
 exports.mentorChat = async (req, res) => {
     const { message } = req.body;
+    const projectId = req.user.projectId; 
 
     if (!message) {
         return res.status(400).json({ success: false, message: "Thiếu message" });
     }
 
     try {
-        // GỌI AI SERVICE
-        const aiResponse = await aiService.callAiMentor({ message });
+        // 1. TÌM TASK ĐANG MỞ CỦA USER/PROJECT
+        // Tái sử dụng logic tìm kiếm task đang mở (isLocked: false, status: "pending")
+        const currentTask = await Task.findOne({
+            projectId,
+            isLocked: false,
+            status: "pending" //
+        }).sort({ order: 1 }).lean(); 
+
+        let taskContext = {
+            title: "Không có task đang mở",
+            requirement: "Người dùng không có task nào đang hoạt động."
+        };
+
+        if (currentTask) {
+            // Chỉ lấy các trường cần thiết để giảm tải
+            taskContext = {
+                title: currentTask.title,
+                requirement: currentTask.requirement, //
+                taskId: currentTask._id // Có thể cần để AI nhận diện task ID
+            };
+        }
+
+        // 2. GỌI AI SERVICE VỚI NGỮ CẢNH TASK MỚI
+        // Cập nhật payload: truyền cả message và taskContext
+        const aiResponse = await aiService.callAiMentor({ 
+            message, 
+            taskContext 
+        });
 
         // Python trả về { answer: '...' } và chúng ta ánh xạ thành { reply: '...' }
         return res.json({
@@ -22,7 +50,7 @@ exports.mentorChat = async (req, res) => {
         });
     } catch (error) {
         console.error("Lỗi gọi AI Mentor:", error.message);
-        return res.status(500).json({ success: false, message: "Lỗi kết nối với AI Mentor Service." });
+        return res.status(500).json({ success: false, message: "Lỗi kết nối với AI Mentor Service hoặc lỗi hệ thống." });
     }
 };
 

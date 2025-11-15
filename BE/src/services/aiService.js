@@ -1,5 +1,6 @@
 const axios = require('axios');
 const AI_SERVER = 'http://127.0.0.1:8000';
+const AI_ENGINE_URL = process.env.AI_ENGINE_URL || 'http://localhost:8000';
 
 // Cấu hình axios để đảm bảo tiêu đề Content-Type là JSON
 const api = axios.create({
@@ -22,8 +23,20 @@ exports.callAiSendTask = async (payload) => {
     return res.data;
 };
 
-exports.callAiMentor = async (payload) => {
-    // Payload là { message: '...' }
-    const res = await api.post('/send_chat', payload); 
-    return res.data;
+// BE/src/services/aiService.js (Cấu trúc giả định)
+
+
+// CẬP NHẬT: Hàm chấp nhận payload mới
+exports.callAiMentor = async ({ message, taskContext }) => {
+    try {
+        const response = await axios.post(`${AI_ENGINE_URL}/send_chat`, {
+            message: message,
+            taskContext: taskContext // Đảm bảo truyền cả taskContext
+        });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
 };
+
+// ... các hàm khác (callAiCheckCode)
