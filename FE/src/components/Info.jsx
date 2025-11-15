@@ -1,5 +1,3 @@
-// File: Info.jsx
-
 import React, { useState } from "react";
 
 export default function Info({ allProjects = [], selectedProject = null, onProjectClick }) {
@@ -19,14 +17,13 @@ export default function Info({ allProjects = [], selectedProject = null, onProje
     }
   };
 
-  // --- START RETURN DÙNG BỐ CỤC FULL-SCREEN ---
   return (
     <div 
       className="min-h-screen w-full" 
       style={{ background: "radial-gradient(125% 125% at 50% 100%, #000000 40%, #010133 100%)" }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="text-right text-[#35C4F0] font-bold pt-6 pr-12">TRANG INFO</div>
+        <div className="text-right text-[#35C4F0] font-bold pt-6 pr-12">Home</div>
 
         {/* 1. KPI Metrics */}
         <div className="grid grid-cols-3 gap-8 px-12 pt-10">
@@ -58,13 +55,13 @@ export default function Info({ allProjects = [], selectedProject = null, onProje
             <div className="flex gap-6 mb-6 border-b border-gray-800">
               <button
                 onClick={() => setActiveTab("all")}
-                className={`font-semibold py-2 px-4 transition ${activeTab === "all" ? "text-[#35C4F0] border-b-4 border-blue-500" : "text-gray-400 hover:text-white"}`}
+                className={`font-semibold py-2 px-4 transition ${activeTab === "all" ? "text-[#35C4F0] border-b-4 border-blue-500" : "text-gray-400 hover:text-black"}`}
               >
                 ALL PROJECTS
               </button>
               <button
                 onClick={() => setActiveTab("my")}
-                className={`font-semibold py-2 px-4 transition ${activeTab === "my" ? "text-[#35C4F0] border-b-4 border-blue-500" : "text-gray-400 hover:text-white"}`}
+                className={`font-semibold py-2 px-4 transition ${activeTab === "my" ? "text-[#35C4F0] border-b-4 border-blue-500" : "text-gray-400 hover:text-black"}`}
               >
                 MY PROJECTS
               </button>
@@ -126,12 +123,12 @@ export default function Info({ allProjects = [], selectedProject = null, onProje
               
               <div className="flex gap-3 justify-end">
                 <button 
-                  className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition"
+                  className="px-4 py-2 bg-gray-700 text-black rounded-lg hover:bg-gray-600 transition"
                   onClick={() => setModalProject(null)}>
                   Đóng
                 </button>
                 <button 
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                  className="px-4 py-2 bg-blue-600 text-black rounded-lg hover:bg-blue-700 transition"
                   onClick={() => {
                     setModalProject(null);
                     if (typeof onProjectClick === 'function') {
