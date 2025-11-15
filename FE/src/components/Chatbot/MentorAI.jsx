@@ -1,17 +1,40 @@
 
 
-import React, { useState, useRef, useEffect } from 'react'; 
+import React, { useState} from 'react'; 
 import { ChatInput } from './ChatInput';
 import { Message } from './Message'; 
 import { useScrollToBottom } from '../../lib/use-scroll-to-bottom.jsx'; 
 
-export default function MentorAIPanel() {
+export default function MentorAIPanel({ tasks = [], project = null }) {
     const [messages, setMessages] = useState([]);
     const [question, setQuestion] = useState(''); 
     const [isLoading, setIsLoading] = useState(false);
     
   
     const [messagesContainerRef, messagesEndRef] = useScrollToBottom(); 
+
+    // Tạo context từ tasks
+    const buildTaskContext = () => {
+        if (!tasks || tasks.length === 0) return '';
+        
+        const currentTask = tasks.find(t => !t.isLocked && t.status === 'pending');
+        const doneTasks = tasks.filter(t => t.status === 'done');
+        const lockedTasks = tasks.filter(t => t.isLocked);
+        
+        return `
+Project: ${project?.title || 'Unnamed Project'}
+- Tổng số task: ${tasks.length}
+- Task đã hoàn thành: ${doneTasks.length}
+- Task đang làm: ${currentTask ? `"${currentTask.title}"` : 'Không có'}
+- Task bị khóa: ${lockedTasks.length}
+
+${currentTask ? `Task hiện tại cần làm:
+Tiêu đề: ${currentTask.title}
+Yêu cầu: ${currentTask.requirement || 'Không có mô tả'}
+Deadline: ${currentTask.deadline ? new Date(currentTask.deadline).toLocaleString('vi-VN') : 'Chưa có'}
+` : ''}
+`.trim();
+    };
 
     
     const handleSendMessage = async (messageText) => {
@@ -28,13 +51,18 @@ export default function MentorAIPanel() {
                 throw new Error('Vui lòng đăng nhập lại!');
             }
 
+            const taskContext = buildTaskContext();
+
             const response = await fetch('http://localhost:3000/api/ai/chat', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ message: messageText }),
+                body: JSON.stringify({ 
+                    message: messageText,
+                    context: taskContext 
+                }),
             });
 
             // Xử lý lỗi HTTP trước khi parse JSON

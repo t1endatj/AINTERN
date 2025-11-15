@@ -155,7 +155,7 @@ function Welcome({ internData, onProjectSubmit }) {
             <div className="flex justify-end">
                 <button 
                     onClick={handleNext} 
-                    className="relative inline-block p-px font-semibold leading-6 text- bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
+                    className="relative inline-block p-px font-semibold leading-6 text- text-white cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
                 >
                     Next <i className="ml-2 fas fa-arrow-right"></i>
                 </button>
@@ -223,7 +223,7 @@ function Welcome({ internData, onProjectSubmit }) {
                 <button 
                     onClick={handleSubmit} 
                     disabled={!selectedProjectId || isCreating}
-                    className="relative inline-block p-px font-semibold leading-6 text- bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
+                    className="relative inline-block p-px font-semibold leading-6 text-white shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
                 >
                     {isCreating ? '⏳ Đang tạo project...' : 'Submit'}
                 </button>

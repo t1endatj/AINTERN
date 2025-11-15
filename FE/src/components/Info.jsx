@@ -8,6 +8,34 @@ export default function Info({ allProjects = [], myProjects = [], onProjectClick
   // Giữ nguyên logic tính toán dự án để hiển thị
   const projectsToShow = activeTab === "all" ? allProjects : myProjects;
   
+  // Tính toán metrics động từ myProjects
+  const calculateMetrics = () => {
+    if (myProjects.length === 0) {
+      return {
+        averageProgress: 0,
+        totalPendingTasks: 0,
+        totalProjects: 0
+      };
+    }
+
+    // Tính tổng % hoàn thành và trung bình
+    const totalProgress = myProjects.reduce((sum, project) => sum + (project.percent || 0), 0);
+    const averageProgress = Math.round(totalProgress / myProjects.length);
+
+    // Đếm tổng số task chưa làm (giả sử mỗi project có taskStats)
+    const totalPendingTasks = myProjects.reduce((sum, project) => {
+      return sum + (project.pendingTasks || 0);
+    }, 0);
+
+    return {
+      averageProgress,
+      totalPendingTasks,
+      totalProjects: myProjects.length
+    };
+  };
+
+  const metrics = calculateMetrics();
+  
   // Hàm tạo project mới từ template (cho ALL PROJECTS)
   const handleCreateProjectFromTemplate = async (template) => {
     try {
@@ -85,21 +113,21 @@ export default function Info({ allProjects = [], myProjects = [], onProjectClick
         <div className="grid grid-cols-3 gap-8 px-12 pt-10">
           
           {/* Card 1: Tiến Độ (Nổi bật) */}
-          <div className="p-8 bg-gray-900 border border-blue-600 rounded-xl text-center shadow-lg transition duration-300 hover:shadow-blue-500/20">
-            <div className="text-6xl font-extrabold text-[#35C4F0]">75%</div>
-            <div className="text-xl text-gray-400 uppercase mt-3">TIẾN BỘ</div>
+          <div className="p-8 bg-gray-900 border border-blue-600 rounded-xl text-center shadow-lg transition duration-300 hover:shadow-blue-500/20 min-w-0">
+            <div className="text-6xl font-extrabold text-[#35C4F0] wrap-break-words">{metrics.averageProgress}%</div>
+            <div className="text-xl text-gray-400 uppercase mt-3">TIẾN ĐỘ</div>
           </div>
           
-          {/* Card 2: Số Task */}
-          <div className="p-8 bg-gray-900 border border-gray-700 rounded-xl text-center shadow-lg">
-            <div className="text-6xl font-extrabold text-white">12/20</div>
-            <div className="text-xl text-gray-400 uppercase mt-3">SỐ TASK</div>
+          {/* Card 2: Số Task Chưa Làm */}
+          <div className="p-8 bg-gray-900 border border-gray-700 rounded-xl text-center shadow-lg min-w-0">
+            <div className="text-6xl font-extrabold text-white wrap-break-words">{metrics.totalPendingTasks}</div>
+            <div className="text-xl text-gray-400 uppercase mt-3">TASK ĐANG CHỜ</div>
           </div>
 
-          {/* Card 3: Thời Gian Còn Lại */}
-          <div className="p-8 bg-gray-900 border border-gray-700 rounded-xl text-center shadow-lg">
-            <div className="text-6xl font-extrabold text-white">45 NGÀY</div>
-            <div className="text-xl text-gray-400 uppercase mt-3">THỜI GIAN THỰC TẬP CÒN LẠI</div>
+          {/* Card 3: Số Dự Án Đã Chọn */}
+          <div className="p-8 bg-gray-900 border border-gray-700 rounded-xl text-center shadow-lg min-w-0">
+            <div className="text-6xl font-extrabold text-white wrap-break-words">{metrics.totalProjects}</div>
+            <div className="text-xl text-gray-400 uppercase mt-3">DỰ ÁN CỦA TÔI</div>
           </div>
         </div>
 
@@ -130,7 +158,7 @@ export default function Info({ allProjects = [], myProjects = [], onProjectClick
               )}
 
               {projectsToShow.map((p) => (
-                <div key={p.id} className="bg-gray-800 rounded-lg p-4 border border-gray-700 cursor-pointer hover:border-blue-500 transition" onClick={() => handleCardClick(p)}>
+                <div key={p.id} className="bg-gray-800 rounded-lg p-4 border border-gray-700 cursor-pointer hover:border-blue-500 transition flex flex-col h-full min-h-[200px]" onClick={() => handleCardClick(p)}>
                   
                   <div className="flex items-start gap-3 mb-2">
                     <div className="w-8 h-8 rounded-md bg-blue-700/50 shrink-0" />
@@ -139,9 +167,9 @@ export default function Info({ allProjects = [], myProjects = [], onProjectClick
                     </div>
                   </div>
                   
-                  {p.description && <p className="text-sm text-gray-400 line-clamp-3">{p.description}</p>}
+                  {p.description && <p className="text-sm text-gray-400 line-clamp-3 mb-4">{p.description}</p>}
                   
-                  <div className="mt-4">
+                  <div className="mt-auto">
                     {typeof p.percent !== 'undefined' && (
                       <>
                         <div className="text-xs font-bold text-right text-white mb-1">{p.percent}%</div>

@@ -171,7 +171,7 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       </div>
 
       {/* KHU VỰC NỘI DUNG CHÍNH */}
-    <div className="flex-1 p-6 flex flex-col min-h-0 w-auto overflow-x-auto">
+    <div className="flex-1 p-6 flex flex-col min-h-0 w-full  overflow-x-auto">
         {selectedTask ? (
             viewMode === 'submit' ? (
                 // 1. HIỂN THỊ GIAO DIỆN NỘP CODE
@@ -314,8 +314,8 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
 
                   {/* Mentor AI */}
                   {activeMenu === 'mentor' && (
-                    <div className="w-full max-w-4xl h-full flex flex-col min-h-0">
-                        <MentorAIPanel />
+                    <div className="w-full h-full flex flex-col min-h-0">
+                        <MentorAIPanel tasks={tasks} project={project} />
                     </div>
                   )}
               </>

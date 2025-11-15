@@ -28,6 +28,7 @@ function App() {
           percent: p.progress,
           totalTasks: p.totalTasks,
           doneTasks: p.doneTasks,
+          pendingTasks: p.pendingTasks,
           remainingDays: p.remainingDays
         }));
         setMyProjects(projectsWithId);

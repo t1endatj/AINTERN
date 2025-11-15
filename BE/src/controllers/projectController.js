@@ -152,6 +152,7 @@ exports.getAllProjects = async (req, res) => {
 
             const totalTasks = tasks.length
             const doneTasks = tasks.filter(t => t.status === "done").length
+            const pendingTasks = tasks.filter(t => t.status === "pending").length
 
             const progress = totalTasks === 0 
                 ? 0 
@@ -169,6 +170,7 @@ exports.getAllProjects = async (req, res) => {
                 progress,
                 totalTasks,
                 doneTasks,
+                pendingTasks,
                 remainingDays
             })
         }

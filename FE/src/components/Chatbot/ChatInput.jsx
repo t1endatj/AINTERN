@@ -1,5 +1,5 @@
 // File: src/components/ChatInput.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import { cn } from '../../lib/utils'; // Import cn
 
 export const ChatInput = ({ question, setQuestion, onSubmit, isLoading }) => {
@@ -39,11 +39,12 @@ export const ChatInput = ({ question, setQuestion, onSubmit, isLoading }) => {
             />
 
             <button 
+                className="text-white h-8"
                 id="bottone5"
                 onClick={() => handleSubmit(question)}
                 disabled={question.length === 0}
             >
-                <i className="fas fa-arrow-up text-sm"></i>
+                Submit
             </button>
         </div>
     </div>

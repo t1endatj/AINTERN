@@ -40,14 +40,14 @@ function Homepage({onStart}) {
                 {/* Header (Title) */}
                 <div className="mb-8 text-center">
                     <h1 className="text-4xl sm:text-5xl font-extrabold text-[#35C4F0]">
-                        Chào mừng Intern!
+                        Hello world!
                     </h1>
                 </div>
 
                 {/* Content Area */}
                 <div className="space-y-6">
                     <p className="text-center text-gray-300 text-lg">
-                        AINTERN đã sẵn sàng. Hãy chọn vai trò của bạn để bắt đầu chương trình mô phỏng thực tập.
+                        AINTERN đã sẵn sàng. Người giúp bạn có kiến thức bền vững hơn.
                     </p>
 
                     {/* 1. Nhập Tên (Input) */}
@@ -68,7 +68,7 @@ function Homepage({onStart}) {
                     {/* 2. Chọn Vị trí/Role (SELECT DROPDOWN) */}
                     <div className="space-y-2">
                         <label htmlFor="role-select" className="block text-gray-300 font-semibold">
-                            Vị trí thực tập:
+                            Role bạn muốn thực hành:
                         </label>
                         <div className="relative">
                             <select
@@ -105,10 +105,10 @@ function Homepage({onStart}) {
 
                     <button 
                         onClick={handleStart} 
-                        className="relative inline-block p-px font-semibold leading-6 text- bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
+                        className="relative inline-block p-px font-semibold leading-6 text- text-white shadow-2xl cursor-pointer rounded-xl transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
                         disabled={name.trim() === '' || selectedRole === ''}
                     >
-                        Bắt đầu Kỳ thực tập
+                        Bắt đầu
                     </button>
 
                 </div>
