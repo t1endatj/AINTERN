@@ -7,10 +7,11 @@ const SubmissionSchema = new mongoose.Schema({
     code: { type: String, required: true },
     language: { type: String, default: 'javascript' },
 
-    // Kết quả chấm sẽ trả về sau
-    result: { type: String, default: 'pending' },
+    // Kết quả chấm (đồng bộ với controller)
+    passed: { type: Boolean, default: false },
     score: { type: Number, default: 0 },
     feedback: { type: String, default: '' },
+
 
     createdAt: { type: Date, default: Date.now }
 })
