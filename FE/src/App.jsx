@@ -110,19 +110,15 @@ function App() {
           const intern = internResult.data;
           setInternData(intern);
           
-          // Check xem user đã có trạng thái chưa
-          if (intern.currentView && intern.currentView !== 'home') {
-            // User cũ - restore trạng thái cũ
-            setView(intern.currentView);
-            
-            if (intern.selectedProject) {
-              setSelectedProject(intern.selectedProject);
-            }
-            
+          // Check xem user đã có project chưa
+          if (intern.selectedProject && intern.selectedProject.id) {
+            // User cũ có project - restore project và chuyển sang Info
+            setSelectedProject(intern.selectedProject);
+            setView('info');
             alert(`Chào mừng trở lại, ${name}! ✨`);
-            console.log('✅ User cũ - restored view:', intern.currentView);
+            console.log('✅ User cũ - chuyển sang Info với project:', intern.selectedProject);
           } else {
-            // User mới - chuyển sang welcome
+            // User mới hoặc chưa có project - chuyển sang welcome
             setView('welcome');
             alert(`Chào mừng ${name} đến với AINTERN! 🎉`);
             console.log('✅ User mới - chuyển sang welcome');
@@ -148,15 +144,15 @@ function App() {
     console.log('📦 State updated - selectedProject:', selectedProject);
     console.log('📦 internData before update:', internData);
     
-    // Lưu project đã chọn vào database và chuyển thẳng sang dashboard
+    // Lưu project đã chọn vào database và chuyển sang Info
     await updateInternState({
       selectedProject,
-      currentView: 'dashboard'
+      currentView: 'info'
     });
     
-    console.log('✅ Database updated, now setting view to dashboard');
-    setView('dashboard');
-    console.log('✅ View state set to dashboard');
+    console.log('✅ Database updated, now setting view to info');
+    setView('info');
+    console.log('✅ View state set to info');
   };
 
   const handleProjectClick = async (project) => {
