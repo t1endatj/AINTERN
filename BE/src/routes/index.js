@@ -22,9 +22,7 @@ router.get('/projects/:id/tasks', taskController.getTasksByProject)
 router.post('/submissions', submissionController.createSubmission)
 router.get('/tasks/:taskId/submissions', submissionController.getSubmissionsByTask)
 
-// AI mock
-router.post('/ai/mentor', aiController.mentorChat)
-router.post('/ai/check-code', aiController.checkCode)
+
 
 router.get('/projects/:id/overview', projectController.getProjectOverview)
 router.get('/tasks/:id', taskController.getTaskDetail)
@@ -32,5 +30,5 @@ router.get('/projects/:id/current-task', taskController.getCurrentTask)
 router.get('/interns/:id/projects', projectController.getProjectsByIntern)
 router.get('/tasks/:id/history', submissionController.getSubmissionHistory);
 router.get('/interns/:id/submissions', submissionController.getSubmissionsByIntern)
-
+router.use('/ai', require('./ai'));
 module.exports = router
