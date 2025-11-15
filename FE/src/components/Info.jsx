@@ -1,11 +1,69 @@
 import React, { useState } from "react";
 
-export default function Info({ allProjects = [], selectedProject = null, onProjectClick }) {
+export default function Info({ allProjects = [], myProjects = [], onProjectClick, onProjectCreated, internData }) {
   const [activeTab, setActiveTab] = useState("all");
   const [modalProject, setModalProject] = useState(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   // Giữ nguyên logic tính toán dự án để hiển thị
-  const projectsToShow = activeTab === "all" ? allProjects : selectedProject ? [selectedProject] : [];
+  const projectsToShow = activeTab === "all" ? allProjects : myProjects;
+  
+  // Hàm tạo project mới từ template (cho ALL PROJECTS)
+  const handleCreateProjectFromTemplate = async (template) => {
+    try {
+      setIsCreating(true);
+      const token = localStorage.getItem('token');
+      
+      console.log('🎬 Creating project from template:', template);
+      
+      const response = await fetch('http://localhost:3000/api/projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          internId: internData._id,
+          title: template.name,
+          templateName: template.templateName,
+          duration: 30
+        })
+      });
+      
+      const result = await response.json();
+      console.log('📥 Project created:', result);
+      
+      if (result.success) {
+        const createdProject = {
+          ...result.project,
+          id: result.project._id,
+          name: result.project.title,
+          description: template.description,
+          technologies: template.technologies,
+          percent: 0
+        };
+        
+        setModalProject(null);
+        
+        // Notify App.jsx about new project (add to myProjects list)
+        if (typeof onProjectCreated === 'function') {
+          onProjectCreated(createdProject);
+        }
+        
+        // Navigate to Dashboard with the new project
+        if (typeof onProjectClick === 'function') {
+          onProjectClick(createdProject);
+        }
+      } else {
+        alert('Lỗi tạo dự án: ' + result.message);
+      }
+    } catch (error) {
+      console.error('❌ Error creating project:', error);
+      alert('Không thể tạo dự án!');
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   const handleCardClick = (project) => {
     if (activeTab === 'my') {
@@ -123,19 +181,16 @@ export default function Info({ allProjects = [], selectedProject = null, onProje
               
               <div className="flex gap-3 justify-end">
                 <button 
-                  className="px-4 py-2 bg-gray-700 text-black rounded-lg hover:bg-gray-600 transition"
-                  onClick={() => setModalProject(null)}>
+                  className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition"
+                  onClick={() => setModalProject(null)}
+                  disabled={isCreating}>
                   Đóng
                 </button>
                 <button 
-                  className="px-4 py-2 bg-blue-600 text-black rounded-lg hover:bg-blue-700 transition"
-                  onClick={() => {
-                    setModalProject(null);
-                    if (typeof onProjectClick === 'function') {
-                      onProjectClick(modalProject);
-                    }
-                  }}>
-                  Bắt đầu dự án này
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:bg-blue-800 disabled:cursor-not-allowed"
+                  onClick={() => handleCreateProjectFromTemplate(modalProject)}
+                  disabled={isCreating}>
+                  {isCreating ? 'Đang tạo...' : 'Bắt đầu dự án này'}
                 </button>
               </div>
             </div>

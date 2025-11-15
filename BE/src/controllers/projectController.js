@@ -72,15 +72,10 @@ exports.createProject = async (req, res) => {
             duration
         });
 
-        // 4) Load template tasks - Map specialization và giữ nguyên templateName
-        const specializationMap = {
-            'frontend': 'front_end',
-            'backend': 'back_end'
-        };
-        const mappedSpecialization = specializationMap[specialization.toLowerCase()] || specialization.toLowerCase();
-        
-        // KHÔNG lowercase templateName để giữ nguyên camelCase (landingPage, netflixTasks, simpleBlog)
-        const fileName = `${mappedSpecialization}_${templateName}_tasks.json`;
+        // 4) Load template tasks - Không cần map vì specialization đã đúng format
+        // File name format: {specialization}_{templateName}_tasks.json
+        // Ví dụ: front_end_simpleBlog_tasks.json
+        const fileName = `${specialization}_${templateName}_tasks.json`;
         const templatePath = path.join(__dirname, '../templates', fileName);
         
         console.log('📁 Looking for template file:', fileName);
