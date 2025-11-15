@@ -55,7 +55,9 @@ function Welcome({ internData, onProjectSubmit }) {
             </h2>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto">
                 Bạn đã sẵn sàng cho thử thách thực tập vị trí <span className="font-bold text-green-400">
-                    {internData.role === 'frontend' ? 'Frontend Developer' : internData.role.toUpperCase()}
+                    {internData.specialization === 'frontend' ? 'Frontend Developer' : 
+                     internData.specialization === 'backend' ? 'Backend Developer' : 
+                     'Data Analyst'}
                 </span> với chương trình mô phỏng **AINTERN**.
             </p>
 

@@ -1,7 +1,8 @@
 const Submission = require('../models/Submission')
 const Task = require('../models/Task')
+const Project = require('../models/Project') // ✅ Cần import Project model
 const unlockTask = require('../utils/unlockTask')
-const axios = require('axios')
+const aiService = require('../services/aiService') // ✅ SỬ DỤNG SERVICE LAYER
 
 exports.createSubmission = async (req, res) => {
     try {
@@ -24,13 +25,16 @@ exports.createSubmission = async (req, res) => {
         // -----------------------------------------------------
         // 📌 1) Gửi code sang Python để AI Engine chấm
         // -----------------------------------------------------
-        const aiResp = await axios.post("http://127.0.0.1:8000/send_code", {
-            code: req.body.code
+        const aiResp = await aiService.callAiCheckCode({ // ✅ DÙNG SERVICE LAYER
+            code: req.body.code,
+            task_id: task._id.toString() // ✅ TRUYỀN TASK_ID CẦN THIẾT CHO AI
         })
 
-        const passed = aiResp.data.passed
-        const feedback = aiResp.data.feedback
-        const score = aiResp.data.score
+        const review = aiResp.review; // Python trả về { review: {...} }
+
+        const passed = review.passed // ✅ Lấy giá trị chính xác
+        const feedback = review.feedback // ✅ Lấy giá trị chính xác
+        const score = review.score // ✅ Lấy giá trị chính xác
         // -----------------------------------------------------
 
         // 📌 2) Lưu submission (kèm feedback từ AI)
@@ -94,6 +98,8 @@ if (task.order === maxOrderTask.order) {
         res.status(400).json({ success: false, error: error.message })
     }
 }
+
+// ... (Các exports khác giữ nguyên)
 
 exports.getSubmissionsByTask = async (req, res) => {
     try {

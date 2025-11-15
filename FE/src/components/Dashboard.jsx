@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import ProfileImage from '../assets/account.png'; 
 import SubmitCode from './SubmitCode'; 
+import MentorAIPanel from './Chatbot/MentorAI';
 
 const SAMPLE_TASKS = [
   { id: 1, name: 'Thiết kế UI trang chủ', deadline: '15/11/2025', status: 'in-progress', priority: 'high' },
@@ -11,10 +12,23 @@ const SAMPLE_TASKS = [
   { id: 5, name: 'Tối ưu performance', deadline: '22/11/2025', status: 'todo', priority: 'medium' },
 ];
 
-export default function Dashboard({ project, internData, onBackToInfo }) {
+export default function Dashboard({ project, internData, onBackToInfo, onLogout }) {
+  console.log('🎨 Dashboard rendered with:', { project, internData });
+  
   const [activeMenu, setActiveMenu] = useState('task'); // Đặt mặc định là 'task'
   const [tasks] = useState(SAMPLE_TASKS);
   const [selectedTask, setSelectedTask] = useState(null);
+
+  // Kiểm tra props
+  if (!internData) {
+    console.error('❌ Dashboard: internData is missing!');
+    return <div className="text-white p-4">Loading intern data...</div>;
+  }
+  
+  if (!project) {
+    console.error('❌ Dashboard: project is missing!');
+    return <div className="text-white p-4">Loading project data...</div>;
+  }
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -56,7 +70,7 @@ export default function Dashboard({ project, internData, onBackToInfo }) {
         style={{ background: "radial-gradient(125% 125% at 50% 100%, #000000 40%, #010133 100%)" }}
     >
       {/* sidebar */}
-      <div className="w-64 bg-gray-900 border-r border-gray-800 h-screen p-4 shrink-0 flex flex-col justify-between fixed left-0 top-0">
+      <div className="w-50 bg-gray-900 border-r border-gray-800 h-screen p-4 shrink-0 flex flex-col justify-between fixed left-0 top-0">
         <div>
             <div 
               className="flex items-center gap-3 p-3 cursor-pointer rounded-lg transition border border-transparent hover:border-blue-500 hover:bg-gray-800"
@@ -91,14 +105,20 @@ export default function Dashboard({ project, internData, onBackToInfo }) {
                 </button>
             </div>
         </div>
-        <div className="text-xs text-gray-500 p-3 border-t border-gray-800">
-            <p>Vị trí: {internData?.role.toUpperCase() || 'DEVELOPER'}</p>
-            <p className="mt-1">AINTERN v1.0</p>
+        <div className="text-xs text-gray-500 p-3 border-t border-gray-800 space-y-2">
+            <p>Vị trí: {internData?.specialization?.toUpperCase() || 'DEVELOPER'}</p>
+            <p>AINTERN v1.0</p>
+            <button
+              onClick={onLogout}
+              className="w-full mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition"
+            >
+              Đăng xuất
+            </button>
         </div>
       </div>
 
       {/* KHU VỰC NỘI DUNG CHÍNH */}
-    <div className="flex-1 p-6 flex flex-col min-h-0 w-full overflow-x-auto">
+    <div className="flex-1 p-6 flex flex-col min-h-0 w-auto overflow-x-auto">
         {selectedTask ? (
             // 1. HIỂN THỊ GIAO DIỆN NỘP CODE
             <SubmitCode 
@@ -109,7 +129,7 @@ export default function Dashboard({ project, internData, onBackToInfo }) {
             <>
                 <h1 className="text-3xl font-bold text-white mb-6">
                     {activeMenu === 'task' && 'Quản lý Task'}
-                    {activeMenu === 'mentor' && 'Hỗ trợ Mentor AI'}
+                    {activeMenu === 'mentor' && 'Mentor AI'}
                 </h1>
                
                 {activeMenu === 'task' && (
@@ -178,8 +198,8 @@ export default function Dashboard({ project, internData, onBackToInfo }) {
 
                   {/* Mentor AI */}
                   {activeMenu === 'mentor' && (
-                    <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 text-white">
-                        <p className="text-gray-400">Giao diện ChatInput và Chat History (Mentor AI) sẽ được đặt tại đây...</p>
+                    <div className="w-full max-w-4xl h-full flex flex-col min-h-0">
+                        <MentorAIPanel />
                     </div>
                   )}
               </>
