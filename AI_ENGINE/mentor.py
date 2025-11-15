@@ -1,10 +1,15 @@
+import os 
 from huggingface_hub import InferenceClient
 
-client = InferenceClient(api_key="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")
+# Đọc giá trị của biến môi trường có tên HUGGINGFACE_API_KEY
+HF_TOKEN = os.environ.get("HUGGINGFACE_API_KEY") 
+
+# Sử dụng biến này để khởi tạo client
+client = InferenceClient(api_key=HF_TOKEN)
 # Lịch sử hội thoại
 chat_history = [
     # {"role": "system", "content": "Bạn là một chatbot về lập trình, trả lời ngắn gọn, chỉ cần những thứ cần thiết và chính xác, không cần icon/emoji, trả lời bằng tiếng việt"}
-    {"role": "system", "content": "trả lời bằng tiếng anh"}
+    {"role": "system", "content": "trả lời bằng tiếng việt"}
 ]
 
 #======================================================================

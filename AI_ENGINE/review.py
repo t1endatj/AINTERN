@@ -1,7 +1,10 @@
-
+import os 
 from huggingface_hub import InferenceClient
+# Đọc giá trị của biến môi trường có tên HUGGINGFACE_API_KEY
+HF_TOKEN = os.environ.get("HUGGINGFACE_API_KEY") 
 
-client = InferenceClient(api_key="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")
+# Sử dụng biến này để khởi tạo client
+client = InferenceClient(api_key=HF_TOKEN)
 
 #lay code (template) trong task tuong ung ra
 def layTemplateTrongFileTask(ten_task: str):
