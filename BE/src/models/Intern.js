@@ -10,7 +10,7 @@ const InternSchema = new mongoose.Schema({
     },
     specialization: {
         type: String,
-        enum: ['frontend', 'backend', 'data'],
+        enum: ['front_end', 'back_end', 'full_stack'],
         required: false
     },
     level: { 

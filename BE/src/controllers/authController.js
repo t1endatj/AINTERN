@@ -6,15 +6,13 @@ exports.loginOrRegister = async (req, res) => {
     try {
         const { name, specialization } = req.body;
 
+        console.log('🔐 Login/Register request:', { name, specialization });
+
         if (!name || !specialization) {
             return res.status(400).json({ success: false, message: 'Vui lòng cung cấp tên (name) và chuyên môn (specialization)' });
         }
 
         // 1. Tìm, cập nhật hoặc tạo mới
-        // Logic này sẽ:
-        // - Tìm intern theo 'name'.
-        // - Nếu tìm thấy, CẬP NHẬT 'specialization' mới.
-        // - Nếu không tìm thấy, TẠO MỚI với 'name' và 'specialization'.
         const intern = await Intern.findOneAndUpdate(
             { name }, 
             { name, specialization },
@@ -25,23 +23,28 @@ exports.loginOrRegister = async (req, res) => {
             }
         );
 
-        console.log(`User ${name} (Role: ${specialization}) đã đăng nhập/cập nhật.`);
+        console.log('✅ User created/updated:', intern._id, intern.name, intern.specialization);
 
         // 2. Tạo token và gửi về
         const token = intern.getSignedJwtToken();
 
-        res.status(200).json({
+        const response = {
             success: true,
             token,
             internId: intern._id,
             name: intern.name,
             specialization: intern.specialization
-        });
+        };
+
+        console.log('📤 Sending response:', response);
+
+        res.status(200).json(response);
 
     } catch (error) {
+        console.error('❌ Error in loginOrRegister:', error);
         if (error.code === 11000) {
              return res.status(400).json({ success: false, message: 'Tên này đã tồn tại (lỗi trùng lặp)' });
         }
-        res.status(500).json({ success: false, error: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };

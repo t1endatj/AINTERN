@@ -49,37 +49,57 @@ exports.getProjectOverview = async (req, res) => {
 exports.createProject = async (req, res) => {
     try {
         // 1) Lấy specialization TỪ NGƯỜI DÙNG ĐÃ XÁC THỰC
-        // req.user được thêm vào từ middleware 'protect'
         const specialization = req.user.specialization;
         
         if (!specialization) {
             return res.status(400).json({ success: false, message: 'Người dùng không có chuyên môn. Vui lòng đăng nhập lại.' });
         }
 
-        const { internId, title, duration } = req.body;
+        // 2) Lấy dữ liệu từ body
+        const { internId, title, duration, templateName } = req.body;
         
-        // 2) Tạo project với chuyên môn đã lấy từ req.user
+        console.log('🔍 Creating project with:', { specialization, templateName, internId, title });
+        
+        if (!templateName) {
+            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp "templateName"' });
+        }
+
+        // 3) Tạo project
         const project = await Project.create({
-            internId, // Vẫn cần internId để liên kết
+            internId, 
             title,
-            specialization, // Lấy từ req.user
+            specialization, 
             duration
         });
 
-        // 3) Load template tasks DỰA TRÊN CHUYÊN MÔN
-        const templateName = `${specialization.toLowerCase()}_tasks.json`;
-        const templatePath = path.join(__dirname, '../templates', templateName);
+        // 4) Load template tasks - Map specialization và giữ nguyên templateName
+        const specializationMap = {
+            'frontend': 'front_end',
+            'backend': 'back_end'
+        };
+        const mappedSpecialization = specializationMap[specialization.toLowerCase()] || specialization.toLowerCase();
+        
+        // KHÔNG lowercase templateName để giữ nguyên camelCase (landingPage, netflixTasks, simpleBlog)
+        const fileName = `${mappedSpecialization}_${templateName}_tasks.json`;
+        const templatePath = path.join(__dirname, '../templates', fileName);
+        
+        console.log('📁 Looking for template file:', fileName);
+        console.log('📂 Full path:', templatePath);
 
         if (!fs.existsSync(templatePath)) {
              await Project.findByIdAndDelete(project._id); 
-             return res.status(404).json({ success: false, message: `Không tìm thấy file template cho chuyên môn: ${templateName}` });
+             console.error('❌ Template file not found:', fileName);
+             return res.status(404).json({ 
+                 success: false, 
+                 message: `Không tìm thấy file template: ${fileName}` 
+             });
         }
         
         const tasksTemplate = JSON.parse(fs.readFileSync(templatePath, 'utf8'));
 
         const tasks = []
 
-        // 4) Tạo task trong DB theo template
+        // 5) Tạo task trong DB theo template (như cũ)
         for (const t of tasksTemplate) {
             const newTask = await Task.create({
                 projectId: project._id,
@@ -94,7 +114,7 @@ exports.createProject = async (req, res) => {
             tasks.push(newTask)
         }
 
-        // 5) Mở task đầu tiên
+        // 6) Mở task đầu tiên (như cũ)
         if (tasks.length > 0) {
             await unlockTask(tasks[0]);
         }
@@ -106,7 +126,12 @@ exports.createProject = async (req, res) => {
         })
 
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message })
+        console.error('❌ Error creating project:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Unknown error',
+            error: error.message 
+        })
     }
 }
 

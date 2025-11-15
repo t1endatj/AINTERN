@@ -1,16 +1,33 @@
 const Submission = require('../models/Submission')
 const Task = require('../models/Task')
-const Project = require('../models/Project') // ✅ Cần import Project model
+const Project = require('../models/Project')
 const unlockTask = require('../utils/unlockTask')
-const aiService = require('../services/aiService') // ✅ SỬ DỤNG SERVICE LAYER
+const aiService = require('../services/aiService')
 
 exports.createSubmission = async (req, res) => {
     try {
-        const task = await Task.findById(req.body.taskId)
+        // 1. Lấy dữ liệu từ req (đã qua multer và protect)
+        const { taskId } = req.body;
+        const internId = req.user.id; // Lấy từ token đã xác thực
+
+        if (!req.file) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Không tìm thấy file code. (Bạn cần gửi file dưới tên trường 'codeFile')" 
+            });
+        }
+        
+        // 2. Đọc nội dung code từ file buffer
+        const codeContent = req.file.buffer.toString('utf8');
+
+        // 3. (Tùy chọn) Lấy ngôn ngữ từ đuôi file
+        const language = req.file.originalname.split('.').pop() || 'javascript';
+
+        // --- Logic kiểm tra Task (giữ nguyên) ---
+        const task = await Task.findById(taskId)
         if (!task)
             return res.status(404).json({ success: false, message: "Task không tồn tại" })
 
-        // nếu task hết hạn → khóa lại + không cho làm
         if (!task.isLocked && task.deadline && task.deadline < Date.now()) {
             task.isExpired = true
             task.isLocked = true
@@ -21,49 +38,51 @@ exports.createSubmission = async (req, res) => {
                 message: "Task đã hết hạn. Bạn không thể nộp bài."
             })
         }
+        // ------------------------------------
 
         // -----------------------------------------------------
-        // 📌 1) Gửi code sang Python để AI Engine chấm
+        // 📌 1) Gửi code (đã đọc từ file) sang Python
         // -----------------------------------------------------
-        const aiResp = await aiService.callAiCheckCode({ // ✅ DÙNG SERVICE LAYER
-            code: req.body.code,
-            task_id: task._id.toString() // ✅ TRUYỀN TASK_ID CẦN THIẾT CHO AI
+        const aiResp = await aiService.callAiCheckCode({
+            code: codeContent, // 4. Gửi nội dung code
+            task_id: task._id.toString()
         })
 
-        const review = aiResp.review; // Python trả về { review: {...} }
-
-        const passed = review.passed // ✅ Lấy giá trị chính xác
-        const feedback = review.feedback // ✅ Lấy giá trị chính xác
-        const score = review.score // ✅ Lấy giá trị chính xác
+        const review = aiResp.review;
+        const passed = review.passed
+        const feedback = review.feedback
+        const score = review.score
         // -----------------------------------------------------
 
-        // 📌 2) Lưu submission (kèm feedback từ AI)
+        // 📌 2) Lưu submission
         const submission = await Submission.create({
-            ...req.body,
+            taskId,
+            internId,
+            code: codeContent, // 5. Lưu nội dung code vào DB
+            language,
             feedback,
             score,
-            passed
+            passed // 6. Lưu trạng thái passed
         })
 
-        // 📌 3) Nếu PASS → unlock task tiếp theo
+        // 📌 3) Nếu PASS → unlock task tiếp theo (Giữ nguyên logic)
         if (passed) {
-            // Nếu là task cuối → hoàn thành project
-const maxOrderTask = await Task.findOne({ projectId: task.projectId }).sort({ order: -1 })
+            const maxOrderTask = await Task.findOne({ projectId: task.projectId }).sort({ order: -1 })
 
-if (task.order === maxOrderTask.order) {
-        const project = await Project.findById(task.projectId)
-        project.status = "completed"
-        await project.save()
+            if (task.order === maxOrderTask.order) {
+                const project = await Project.findById(task.projectId)
+                project.status = "completed"
+                await project.save()
 
-        return res.json({
-            success: true,
-            passed: true,
-            projectCompleted: true,
-            message: "Bạn đã hoàn thành toàn bộ thực tập!",
-            feedback,
-            score
-        })
-    }
+                return res.json({
+                    success: true,
+                    passed: true,
+                    projectCompleted: true,
+                    message: "Bạn đã hoàn thành toàn bộ thực tập!",
+                    feedback,
+                    score
+                })
+            }
 
             task.status = "done"
             await task.save()
@@ -95,6 +114,10 @@ if (task.order === maxOrderTask.order) {
         })
 
     } catch (error) {
+        // Thêm xử lý lỗi của multer
+        if (error instanceof multer.MulterError) {
+             return res.status(400).json({ success: false, message: "Lỗi upload file: " + error.message });
+        }
         res.status(400).json({ success: false, error: error.message })
     }
 }
@@ -139,12 +162,12 @@ exports.getSubmissionsByIntern = async (req, res) => {
         const internId = req.params.id;
 
         const submissions = await Submission.find({ internId })
-            .populate("taskId")      // lấy info task
+            .populate("taskId")
             .populate({
                 path: "taskId",
-                populate: { path: "projectId" }   // lấy info project
+                populate: { path: "projectId" }
             })
-            .sort({ createdAt: -1 }); // mới nhất lên đầu
+            .sort({ createdAt: -1 });
 
         return res.json({
             success: true,
