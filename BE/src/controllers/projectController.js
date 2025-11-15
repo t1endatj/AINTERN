@@ -51,16 +51,37 @@ exports.getProjectOverview = async (req, res) => {
 }
 exports.createProject = async (req, res) => {
     try {
-        // 1) Tạo project
-        const project = await Project.create(req.body)
+        // 1) Lấy specialization từ body
+        const { internId, title, specialization, duration } = req.body;
 
-        // 2) Load template tasks
-        const templatePath = path.join(__dirname, '../templates/tasks.json')
-        const tasksTemplate = JSON.parse(fs.readFileSync(templatePath, 'utf8'))
+        if (!specialization) {
+            return res.status(400).json({ success: false, message: 'Vui lòng chọn chuyên môn (specialization: front_end hoặc back_end)' });
+        }
+
+        // 2) Tạo project với chuyên môn đã chọn
+        const project = await Project.create({
+            internId,
+            title,
+            specialization,
+            duration
+        });
+
+        // 3) ✅ Load template tasks DỰA TRÊN CHUYÊN MÔN
+        // Quyết định file template nào sẽ được load
+        const templateName = `${specialization.toLowerCase()}_tasks.json`; // Ví dụ: 'front_end_tasks.json'
+        const templatePath = path.join(__dirname, '../templates', templateName);
+
+        if (!fs.existsSync(templatePath)) {
+            // Nếu file template (vd: front_end_tasks.json) không tồn tại
+             await Project.findByIdAndDelete(project._id); // Xóa project vừa tạo
+             return res.status(404).json({ success: false, message: `Không tìm thấy file template cho chuyên môn: ${templateName}` });
+        }
+        
+        const tasksTemplate = JSON.parse(fs.readFileSync(templatePath, 'utf8'));
 
         const tasks = []
 
-        // 3) Tạo task trong DB theo template
+        // 4) Tạo task trong DB theo template
         for (const t of tasksTemplate) {
             const newTask = await Task.create({
                 projectId: project._id,
@@ -69,14 +90,16 @@ exports.createProject = async (req, res) => {
                 examples: t.examples,
                 order: t.order,
                 duration: t.duration,
-                testcases: t.testcases,
+                testcases: t.testcases, // Tạm thời để trống nếu test case nằm ở Python
                 isLocked: t.order !== 1   // task 1 mở, các task khác khóa
             })
             tasks.push(newTask)
         }
 
-        // 4) Mở task đầu tiên
-        await unlockTask(tasks[0])
+        // 5) Mở task đầu tiên
+        if (tasks.length > 0) {
+            await unlockTask(tasks[0]);
+        }
 
         return res.json({
             success: true,

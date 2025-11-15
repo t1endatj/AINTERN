@@ -26,7 +26,7 @@ router.get('/tasks/:taskId/submissions', submissionController.getSubmissionsByTa
 
 router.get('/projects/:id/overview', projectController.getProjectOverview)
 router.get('/tasks/:id', taskController.getTaskDetail)
-router.get('/projects/:id/current-task', taskController.getCurrentTask)
+router.get('/p  rojects/:id/current-task', taskController.getCurrentTask)
 router.get('/interns/:id/projects', projectController.getProjectsByIntern)
 router.get('/tasks/:id/history', submissionController.getSubmissionHistory);
 router.get('/interns/:id/submissions', submissionController.getSubmissionsByIntern)
