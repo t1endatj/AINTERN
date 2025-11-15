@@ -62,7 +62,7 @@ export default function MentorAIPanel() {
     };
 
     return (
-        <div className="flex flex-col h-full w-full max-w-4xl mx-auto min-h-0">
+        <div className="flex flex-col h-full w-full mx-auto min-h-0">
             
             {/* Lịch sử Chat - GÁN REF CHO CONTAINER CUỘN */}
             <div 
