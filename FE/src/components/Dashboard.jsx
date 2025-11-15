@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import ProfileImage from '../assets/account.png'; 
 import SubmitCode from './SubmitCode'; 
+import MentorAIPanel from './Chatbot/MentorAI';
 
 const SAMPLE_TASKS = [
   { id: 1, name: 'Thiết kế UI trang chủ', deadline: '15/11/2025', status: 'in-progress', priority: 'high' },
@@ -109,7 +110,7 @@ export default function Dashboard({ project, internData, onBackToInfo }) {
             <>
                 <h1 className="text-3xl font-bold text-white mb-6">
                     {activeMenu === 'task' && 'Quản lý Task'}
-                    {activeMenu === 'mentor' && 'Hỗ trợ Mentor AI'}
+                    {activeMenu === 'mentor' && 'Mentor AI'}
                 </h1>
                
                 {activeMenu === 'task' && (
@@ -178,8 +179,8 @@ export default function Dashboard({ project, internData, onBackToInfo }) {
 
                   {/* Mentor AI */}
                   {activeMenu === 'mentor' && (
-                    <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 text-white">
-                        <p className="text-gray-400">Giao diện ChatInput và Chat History (Mentor AI) sẽ được đặt tại đây...</p>
+                    <div className="w-full max-w-4xl h-full flex flex-col min-h-0">
+                        <MentorAIPanel />
                     </div>
                   )}
               </>
