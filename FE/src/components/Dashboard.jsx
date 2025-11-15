@@ -16,11 +16,6 @@ export default function Dashboard({ project, internData, onBackToInfo }) {
   const [tasks] = useState(SAMPLE_TASKS);
   const [selectedTask, setSelectedTask] = useState(null);
 
-
-  const onBackToInfo = () => {
-    setView('info');
-  };
-
   const getStatusBadge = (status) => {
     const statusConfig = {
       'todo': { label: 'Chưa làm', className: 'bg-gray-700 text-gray-300' }, // Dark Mode adjusted

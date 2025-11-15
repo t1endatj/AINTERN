@@ -33,6 +33,10 @@ function App() {
     setView('dashboard');
   };
 
+  const handleBackToInfo = () => {
+    setView('info'); // Chuyển trạng thái hiển thị
+  };
+
   if (isLoading) {
     return <Loader onComplete={handleLoadComplete} />;
   }
@@ -46,7 +50,11 @@ function App() {
   }
 
   if (view === 'dashboard') {
-    return <Dashboard project={selectedProject} internData={internData} />;
+    return <Dashboard 
+              project={selectedProject} 
+              internData={internData} 
+              onBackToInfo={handleBackToInfo}
+            />;
   }
 
   return <Homepage onStart={handleSelectStart} />;
