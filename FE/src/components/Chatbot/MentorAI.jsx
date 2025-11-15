@@ -9,7 +9,7 @@ export default function MentorAIPanel() {
     const [isLoading, setIsLoading] = useState(false);
 
     // Xử lý gửi tin nhắn từ ChatInput
-    const handleSendMessage = (messageText) => {
+    const handleSendMessage = async (messageText) => {
         if (messageText.trim() === '') return;
 
         // 1. Thêm tin nhắn người dùng
@@ -20,15 +20,35 @@ export default function MentorAIPanel() {
         setIsLoading(true);
 
         // GIẢ LẬP PHẢN HỒI TỪ AI (Thay thế bằng fetch/axios thực tế)
-        setTimeout(() => {
+        try {
+                const response = await fetch('http://127.0.0.1:3000/api/ai/chat', { 
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: messageText }),
+            });
+
+            // THÊM: Xử lý lỗi HTTP trước khi parse JSON
+            if (!response.ok) { 
+                throw new Error(`Lỗi HTTP ${response.status}: Vui lòng kiểm tra Server Python.`);
+            }
+            
+            const data = await response.json();
+            
+            // SỬA: Đọc trường 'reply' từ aiController.js
             const aiResponse = { 
                 id: Date.now() + 1, 
                 role: 'assistant', 
-                content: `Tôi đã nhận được câu hỏi của bạn là: "${messageText}"`, 
+                content: data.reply || "AI Mentor không phản hồi.", // ĐỌC TRƯỜNG 'reply'
             };
+            
             setMessages(prev => [...prev, aiResponse]);
+        } catch (error) {
+            console.error('Error sending message:', error);
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     };
 
     return (
