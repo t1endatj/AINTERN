@@ -26,7 +26,6 @@ export default function SubmissionHistory({ task, onClose }) {
             });
 
             const result = await response.json();
-            console.log('📥 Submissions fetched:', result);
 
             if (result.success) {
                 setSubmissions(result.data || []);

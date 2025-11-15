@@ -6,7 +6,7 @@ import SubmissionHistory from './SubmissionHistory';
 import MentorAIPanel from './Chatbot/MentorAI';
 
 export default function Dashboard({ project, internData, onBackToInfo, onLogout }) {
-  console.log('🎨 Dashboard rendered with:', { project, internData });
+
   
   const [activeMenu, setActiveMenu] = useState('task');
   const [tasks, setTasks] = useState([]);
@@ -22,9 +22,6 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       setLoading(true);
       setError(null);
       
-      // Debug: Kiểm tra project object
-      console.log('🔍 Project object:', project);
-      console.log('🔍 Project ID:', project?.id);
       
       if (!project?.id) {
         setError('Không tìm thấy ID của project');
@@ -33,17 +30,17 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       }
       
       const url = `http://localhost:3000/api/projects/${project.id}/tasks`;
-      console.log('📤 Fetching tasks from:', url);
+    
       
       const response = await fetch(url);
-      console.log('📥 Response status:', response.status);
+     
       
       const result = await response.json();
-      console.log('📥 Tasks fetched:', result);
+    
       
       if (result.success) {
         setTasks(result.data || []);
-        console.log('✅ Tasks loaded:', result.data?.length || 0);
+       
       } else {
         setError(result.message || 'Không thể tải tasks');
       }

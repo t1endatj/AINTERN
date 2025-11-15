@@ -60,10 +60,11 @@ export default function SubmitCode({ task, onClose, onSubmitSuccess }) {
             });
 
             const result = await response.json();
-            console.log('📥 Submission result:', result);
 
             if (result.success) {
                 const data = result.data;
+            
+                
                 setSubmissionResult({
                     passed: data.passed,
                     score: data.score,
@@ -86,7 +87,8 @@ export default function SubmitCode({ task, onClose, onSubmitSuccess }) {
 ${data.feedback || 'Không có feedback từ AI.'}
 
 ═══════════════════════════════════════════════
-                `;
+                `.trim();
+                
                 setReviewOutput(reviewText);
 
                 // Gọi callback nếu có
@@ -187,8 +189,8 @@ ${data.feedback || 'Không có feedback từ AI.'}
                 </div>
                 
                 {/* 2. Vùng Review Trả về (Tỷ lệ 60%) */}
-                <div className="flex-7 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col">
-                    <div className="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
+                <div className="flex-7 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col overflow-hidden">
+                    <div className="flex justify-between items-center mb-3 border-b border-gray-800 pb-2 shrink-0">
                         <h3 className="text-lg font-bold text-[#35C4F0]">
                             🤖 Kết quả Code Review
                         </h3>
@@ -207,9 +209,11 @@ ${data.feedback || 'Không có feedback từ AI.'}
                             </div>
                         )}
                     </div>
-                    <pre className="text-gray-300 whitespace-pre-wrap font-mono overflow-auto flex-1 text-sm">
-                        {reviewOutput}
-                    </pre>
+                    <div className="flex-1 overflow-auto bg-gray-800 rounded p-3">
+                        <pre className="text-white whitespace-pre-wrap font-mono text-sm leading-relaxed">
+                            {reviewOutput}
+                        </pre>
+                    </div>
                 </div>
             </div>
         </div>

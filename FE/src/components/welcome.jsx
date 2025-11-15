@@ -66,8 +66,7 @@ function Welcome({ internData, onProjectSubmit }) {
             const projectList = internData.specialization === 'front_end' ? PROJECT_OPTIONS_FE : PROJECT_OPTIONS_BE;
             const projectTemplate = projectList.find(p => p.id === selectedProjectId);
             
-            console.log('🚀 Creating project:', projectTemplate.name);
-            console.log('📋 Template:', projectTemplate.templateName);
+         
             
             const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:3000/api/projects', {
@@ -85,7 +84,7 @@ function Welcome({ internData, onProjectSubmit }) {
             });
 
             const result = await response.json();
-            console.log('📥 Project created:', result);
+            
 
             if (result.success) {
                 const createdProject = {

@@ -13,8 +13,11 @@ const api = axios.create({
 
 exports.callAiCheckCode = async (payload) => {
     try {
-        // Payload là { code: '...', task_id: '...' }
-        console.log('📤 Calling AI Engine /send_code with payload:', { task_id: payload.task_id, codeLength: payload.code?.length });
+        // Payload là { code: '...', template: '...' }
+        console.log('📤 Calling AI Engine /send_code with payload:', { 
+            codeLength: payload.code?.length,
+            templateLength: payload.template?.length 
+        });
         const res = await api.post('/send_code', payload);
         console.log('📥 AI Engine response:', res.data);
         return res.data;

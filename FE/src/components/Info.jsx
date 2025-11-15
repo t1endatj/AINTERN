@@ -14,7 +14,6 @@ export default function Info({ allProjects = [], myProjects = [], onProjectClick
       setIsCreating(true);
       const token = localStorage.getItem('token');
       
-      console.log('🎬 Creating project from template:', template);
       
       const response = await fetch('http://localhost:3000/api/projects', {
         method: 'POST',
@@ -31,7 +30,6 @@ export default function Info({ allProjects = [], myProjects = [], onProjectClick
       });
       
       const result = await response.json();
-      console.log('📥 Project created:', result);
       
       if (result.success) {
         const createdProject = {

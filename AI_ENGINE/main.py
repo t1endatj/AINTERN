@@ -66,10 +66,16 @@ async def send_code_to_py(data: CodePayload):
         # Gọi hàm review từ review.py (gọi Hugging Face API)
         review_text = review_with_bot(code_content, template_content)
         
-        # Giả lập phân tích kết quả từ review_text 
-        # (Bạn có thể cần làm logic này phức tạp hơn)
-        passed = "Kết luận: Pass" in review_text or "Kết luận: Đạt" in review_text
-        score = 100 if passed else 0
+        print(f"[{time.strftime('%H:%M:%S')}] AI Review response: {review_text[:200]}...")
+        
+        # Parse kết quả từ review_text (tìm "Pass" hoặc "Không Pass")
+        review_lower = review_text.lower()
+        passed = ("pass" in review_lower and "không pass" not in review_lower)
+        
+        # Tìm điểm số (pattern: "Điểm số: XX/100" hoặc "XX/100")
+        import re
+        score_match = re.search(r'(\d+)\s*/\s*100', review_text)
+        score = int(score_match.group(1)) if score_match else (100 if passed else 0)
         
         # Trả về JSON { "review": {...} }
         return {
