@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Loader from './components/Loader';
 import Homepage from './components/input';
 import './App.css';
@@ -11,18 +11,38 @@ function App() {
   const [internData, setInternData] = useState(null);
   const [view, setView] = useState('home'); // 'home' | 'welcome' | 'info' | 'dashboard'
   const [allProjects, setAllProjects] = useState([]);
+  const [myProjects, setMyProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  // Load trạng thái từ sessionStorage khi refresh
-  useEffect(() => {
-    const savedInternId = sessionStorage.getItem('internId');
-    if (savedInternId) {
-      loadInternState(savedInternId);
+  // Hàm fetch danh sách projects của user
+  const fetchMyProjects = useCallback(async (internId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/interns/${internId}/projects`);
+      const result = await response.json();
+      
+      if (result.success) {
+        const projectsWithId = result.projects.map(p => ({
+          ...p.project,
+          id: p.project._id,
+          name: p.project.title,
+          percent: p.progress,
+          totalTasks: p.totalTasks,
+          doneTasks: p.doneTasks,
+          pendingTasks: p.pendingTasks,
+          remainingDays: p.remainingDays
+        }));
+        setMyProjects(projectsWithId);
+        console.log('✅ Fetched my projects:', projectsWithId);
+        return projectsWithId;
+      }
+    } catch (error) {
+      console.error('❌ Error fetching my projects:', error);
+      return [];
     }
   }, []);
 
   // Hàm load trạng thái intern từ database
-  const loadInternState = async (internId) => {
+  const loadInternState = useCallback(async (internId) => {
     try {
       const response = await fetch(`http://localhost:3000/api/interns/${internId}`);
       const result = await response.json();
@@ -30,6 +50,31 @@ function App() {
       if (result.success) {
         const intern = result.data;
         setInternData(intern);
+        
+        // Fetch user's projects
+        await fetchMyProjects(internId);
+        
+        // Restore allProjects from templates API
+        if (intern.specialization) {
+          try {
+            const templatesResponse = await fetch(`http://localhost:3000/api/templates?specialization=${intern.specialization}`);
+            const templatesResult = await templatesResponse.json();
+            
+            if (templatesResult.success) {
+              const projectsFromAPI = templatesResult.data.map(template => ({
+                id: template.templateName,
+                name: template.name,
+                description: template.description,
+                technologies: template.technologies || [],
+                templateName: template.templateName,
+                taskCount: template.taskCount
+              }));
+              setAllProjects(projectsFromAPI);
+            }
+          } catch (error) {
+            console.error('❌ Error fetching templates:', error);
+          }
+        }
         
         // Restore project đã chọn
         if (intern.selectedProject && intern.selectedProject.id) {
@@ -42,14 +87,22 @@ function App() {
         }
         
         console.log('✅ Đã restore trạng thái:', intern);
-        return intern; // ✅ Thêm return
+        return intern;
       }
-      return null; // ✅ Trả về null nếu không thành công
+      return null;
     } catch (error) {
       console.error('Lỗi khi load trạng thái:', error);
-      return null; // ✅ Trả về null nếu có lỗi
+      return null;
     }
-  };
+  }, [fetchMyProjects]);
+
+  // Load trạng thái từ sessionStorage khi refresh
+  useEffect(() => {
+    const savedInternId = sessionStorage.getItem('internId');
+    if (savedInternId) {
+      loadInternState(savedInternId);
+    }
+  }, [loadInternState]);
 
   // Hàm cập nhật trạng thái lên database
   const updateInternState = async (updates) => {
@@ -110,13 +163,47 @@ function App() {
           const intern = internResult.data;
           setInternData(intern);
           
+          // Fetch user's projects
+          const projects = await fetchMyProjects(result.internId);
+          
+          // Restore allProjects from templates API
+          try {
+            const templatesResponse = await fetch(`http://localhost:3000/api/templates?specialization=${intern.specialization}`);
+            const templatesResult = await templatesResponse.json();
+            
+            if (templatesResult.success) {
+              const projectsFromAPI = templatesResult.data.map(template => ({
+                id: template.templateName,
+                name: template.name,
+                description: template.description,
+                technologies: template.technologies || [],
+                templateName: template.templateName,
+                taskCount: template.taskCount
+              }));
+              setAllProjects(projectsFromAPI);
+            }
+          } catch (error) {
+            console.error('❌ Error fetching templates:', error);
+          }
+          
           // Check xem user đã có project chưa
           if (intern.selectedProject && intern.selectedProject.id) {
-            // User cũ có project - restore project và chuyển sang Info
+            // User cũ có project - restore project và chuyển thẳng sang Dashboard
             setSelectedProject(intern.selectedProject);
-            setView('info');
+            
+            // Update view to dashboard
+            await updateInternState({
+              currentView: 'dashboard'
+            });
+            
+            setView('dashboard');
             alert(`Chào mừng trở lại, ${name}! ✨`);
-            console.log('✅ User cũ - chuyển sang Info với project:', intern.selectedProject);
+            console.log('✅ User cũ - chuyển thẳng sang Dashboard với project:', intern.selectedProject);
+          } else if (projects && projects.length > 0) {
+            // User đã có projects nhưng chưa select - chuyển sang Info
+            setView('info');
+            alert(`Chào mừng trở lại, ${name}! Hãy chọn dự án để tiếp tục. 🎯`);
+            console.log('✅ User có projects - chuyển sang Info');
           } else {
             // User mới hoặc chưa có project - chuyển sang welcome
             setView('welcome');
@@ -160,13 +247,56 @@ function App() {
     
     // Cập nhật view sang dashboard
     await updateInternState({
+      selectedProject: project,
       currentView: 'dashboard'
     });
     
     setView('dashboard');
   };
 
+  const handleProjectCreated = async (newProject) => {
+    // Add to myProjects list
+    setMyProjects(prev => [...prev, newProject]);
+    
+    // Set as selected project
+    setSelectedProject(newProject);
+    
+    // Update database
+    await updateInternState({
+      selectedProject: newProject
+    });
+    
+    console.log('✅ Project added to MY PROJECTS:', newProject);
+  };
+
   const handleBackToInfo = async () => {
+    // Restore allProjects if empty
+    if (allProjects.length === 0 && internData?.specialization) {
+      try {
+        const response = await fetch(`http://localhost:3000/api/templates?specialization=${internData.specialization}`);
+        const result = await response.json();
+        
+        if (result.success) {
+          const projectsFromAPI = result.data.map(template => ({
+            id: template.templateName,
+            name: template.name,
+            description: template.description,
+            technologies: template.technologies || [],
+            templateName: template.templateName,
+            taskCount: template.taskCount
+          }));
+          setAllProjects(projectsFromAPI);
+        }
+      } catch (error) {
+        console.error('❌ Error fetching templates:', error);
+      }
+    }
+    
+    // Refresh myProjects
+    if (internData?._id) {
+      await fetchMyProjects(internData._id);
+    }
+    
     await updateInternState({
       currentView: 'info'
     });
@@ -178,6 +308,7 @@ function App() {
     setInternData(null);
     setSelectedProject(null);
     setAllProjects([]);
+    setMyProjects([]);
     setView('home');
     console.log('✅ Đã đăng xuất');
   };
@@ -192,9 +323,11 @@ function App() {
 
   if (view === 'info') {
     return <Info 
-      allProjects={allProjects} 
-      selectedProject={selectedProject} 
+      allProjects={allProjects}
+      myProjects={myProjects}
+      internData={internData}
       onProjectClick={handleProjectClick}
+      onProjectCreated={handleProjectCreated}
       onLogout={handleLogout}
     />;
   }

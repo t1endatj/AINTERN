@@ -12,9 +12,9 @@ exports.loginOrRegister = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Vui lòng cung cấp tên (name) và chuyên môn (specialization)' });
         }
 
-        // 1. Tìm, cập nhật hoặc tạo mới
+        // 1. Tìm theo cả name VÀ specialization, hoặc tạo mới
         const intern = await Intern.findOneAndUpdate(
-            { name }, 
+            { name, specialization }, 
             { name, specialization },
             { 
                 new: true, 

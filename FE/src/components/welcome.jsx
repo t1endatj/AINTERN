@@ -66,8 +66,7 @@ function Welcome({ internData, onProjectSubmit }) {
             const projectList = internData.specialization === 'front_end' ? PROJECT_OPTIONS_FE : PROJECT_OPTIONS_BE;
             const projectTemplate = projectList.find(p => p.id === selectedProjectId);
             
-            console.log('🚀 Creating project:', projectTemplate.name);
-            console.log('📋 Template:', projectTemplate.templateName);
+         
             
             const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:3000/api/projects', {
@@ -85,7 +84,7 @@ function Welcome({ internData, onProjectSubmit }) {
             });
 
             const result = await response.json();
-            console.log('📥 Project created:', result);
+            
 
             if (result.success) {
                 const createdProject = {
@@ -103,6 +102,8 @@ function Welcome({ internData, onProjectSubmit }) {
                     name: proj.name,
                     description: proj.description,
                     technologies: proj.technologies,
+                    templateName: proj.templateName, // ✅ Thêm templateName
+                    taskCount: proj.taskCount,
                     percent: 0
                 }));
 
@@ -154,7 +155,7 @@ function Welcome({ internData, onProjectSubmit }) {
             <div className="flex justify-end">
                 <button 
                     onClick={handleNext} 
-                    className="relative inline-block p-px font-semibold leading-6 text- bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
+                    className="relative inline-block p-px font-semibold leading-6 text- text-white cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
                 >
                     Next <i className="ml-2 fas fa-arrow-right"></i>
                 </button>
@@ -222,7 +223,7 @@ function Welcome({ internData, onProjectSubmit }) {
                 <button 
                     onClick={handleSubmit} 
                     disabled={!selectedProjectId || isCreating}
-                    className="relative inline-block p-px font-semibold leading-6 text- bg-gray-800 shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
+                    className="relative inline-block p-px font-semibold leading-6 text-white shadow-2xl cursor-pointer rounded-xl shadow-zinc-900 transition-transform duration-300 ease-in-out hover:scale-105 active:scale-95  disabled:opacity-50 mt-6"
                 >
                     {isCreating ? '⏳ Đang tạo project...' : 'Submit'}
                 </button>

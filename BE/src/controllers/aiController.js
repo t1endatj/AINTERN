@@ -5,15 +5,22 @@ const aiService = require('../services/aiService'); // ✅ Lấy Service Layer
  * Gửi message đến Python Engine /send_chat
  */
 exports.mentorChat = async (req, res) => {
-    const { message } = req.body;
+    const { message, context } = req.body;
 
     if (!message) {
         return res.status(400).json({ success: false, message: "Thiếu message" });
     }
 
     try {
+        // Tạo enhanced message với context
+        const enhancedMessage = context 
+            ? `Context về task hiện tại:\n${context}\n\nCâu hỏi từ user: ${message}`
+            : message;
+
+        console.log('📤 Sending to AI Mentor with context:', { message, contextLength: context?.length || 0 });
+
         // GỌI AI SERVICE
-        const aiResponse = await aiService.callAiMentor({ message });
+        const aiResponse = await aiService.callAiMentor({ message: enhancedMessage });
 
         // Python trả về { answer: '...' } và chúng ta ánh xạ thành { reply: '...' }
         return res.json({

@@ -3,6 +3,7 @@ const Task = require('../models/Task')
 const Project = require('../models/Project')
 const unlockTask = require('../utils/unlockTask')
 const aiService = require('../services/aiService')
+const fs = require('fs')
 
 exports.createSubmission = async (req, res) => {
     try {
@@ -17,11 +18,11 @@ exports.createSubmission = async (req, res) => {
             });
         }
         
-        // 2. Đọc nội dung code từ file buffer
-        const codeContent = req.file.buffer.toString('utf8');
+        // 2. Đọc nội dung code từ file đã upload (disk)
+        const codeContent = fs.readFileSync(req.file.path, 'utf8');
 
         // 3. (Tùy chọn) Lấy ngôn ngữ từ đuôi file
-        const language = req.file.originalname.split('.').pop() || 'javascript';
+        const language = req.file.originalname?.split('.').pop() || 'javascript';
 
         // --- Logic kiểm tra Task (giữ nguyên) ---
         const task = await Task.findById(taskId)
@@ -43,15 +44,44 @@ exports.createSubmission = async (req, res) => {
         // -----------------------------------------------------
         // 📌 1) Gửi code (đã đọc từ file) sang Python
         // -----------------------------------------------------
-        const aiResp = await aiService.callAiCheckCode({
-            code: codeContent, // 4. Gửi nội dung code
-            task_id: task._id.toString()
-        })
+        let aiResp, review, passed, feedback, score;
+        
+        try {
+            // Tạo template string từ requirement + examples (với null check)
+            const examplesText = Array.isArray(task.examples) && task.examples.length > 0
+                ? task.examples.join('\n\n---\n\n')
+                : 'Không có code mẫu';
+            
+            const templateString = `
+YÊU CẦU:
+${task.requirement || 'Không có yêu cầu cụ thể'}
 
-        const review = aiResp.review;
-        const passed = review.passed
-        const feedback = review.feedback
-        const score = review.score
+CODE MẪU:
+${examplesText}
+            `.trim();
+
+            console.log('📤 Calling AI Engine /send_code');
+            console.log('📝 Template length:', templateString.length);
+            console.log('💻 Code length:', codeContent.length);
+
+            aiResp = await aiService.callAiCheckCode({
+                code: codeContent,
+                template: templateString
+            })
+
+            console.log('📥 AI Engine response:', aiResp);
+
+            review = aiResp.review;
+            passed = review.passed
+            feedback = review.feedback
+            score = review.score
+        } catch (aiError) {
+            console.error('❌ AI Service Error:', aiError);
+            return res.status(500).json({
+                success: false,
+                message: aiError.message || 'Lỗi khi gọi AI Engine'
+            });
+        }
         // -----------------------------------------------------
 
         // 📌 2) Lưu submission
@@ -76,11 +106,13 @@ exports.createSubmission = async (req, res) => {
 
                 return res.json({
                     success: true,
-                    passed: true,
-                    projectCompleted: true,
-                    message: "Bạn đã hoàn thành toàn bộ thực tập!",
-                    feedback,
-                    score
+                    data: {
+                        passed: true,
+                        projectCompleted: true,
+                        message: "Bạn đã hoàn thành toàn bộ thực tập!",
+                        feedback,
+                        score
+                    }
                 })
             }
 
@@ -98,27 +130,31 @@ exports.createSubmission = async (req, res) => {
 
             return res.json({
                 success: true,
-                passed: true,
-                feedback,
-                score,
-                unlockedNextTask: nextTask ? nextTask._id : null
+                data: {
+                    passed: true,
+                    feedback,
+                    score,
+                    unlockedNextTask: nextTask ? nextTask._id : null
+                }
             })
         }
 
         // 📌 4) Nếu fail → trả feedback
         return res.json({
             success: true,
-            passed: false,
-            feedback,
-            score
+            data: {
+                passed: false,
+                feedback,
+                score
+            }
         })
 
     } catch (error) {
-        // Thêm xử lý lỗi của multer
-        if (error instanceof multer.MulterError) {
-             return res.status(400).json({ success: false, message: "Lỗi upload file: " + error.message });
-        }
-        res.status(400).json({ success: false, error: error.message })
+        console.error('❌ Error in createSubmission:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Lỗi server khi xử lý submission' 
+        })
     }
 }
 

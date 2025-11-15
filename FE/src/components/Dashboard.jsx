@@ -2,14 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import ProfileImage from '../assets/account.png'; 
 import SubmitCode from './SubmitCode'; 
+import SubmissionHistory from './SubmissionHistory';
 import MentorAIPanel from './Chatbot/MentorAI';
 
 export default function Dashboard({ project, internData, onBackToInfo, onLogout }) {
-  console.log('🎨 Dashboard rendered with:', { project, internData });
+
   
   const [activeMenu, setActiveMenu] = useState('task');
   const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [viewMode, setViewMode] = useState(null); // 'submit' hoặc 'history'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -20,9 +22,6 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       setLoading(true);
       setError(null);
       
-      // Debug: Kiểm tra project object
-      console.log('🔍 Project object:', project);
-      console.log('🔍 Project ID:', project?.id);
       
       if (!project?.id) {
         setError('Không tìm thấy ID của project');
@@ -31,17 +30,17 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       }
       
       const url = `http://localhost:3000/api/projects/${project.id}/tasks`;
-      console.log('📤 Fetching tasks from:', url);
+    
       
       const response = await fetch(url);
-      console.log('📥 Response status:', response.status);
+     
       
       const result = await response.json();
-      console.log('📥 Tasks fetched:', result);
+    
       
       if (result.success) {
         setTasks(result.data || []);
-        console.log('✅ Tasks loaded:', result.data?.length || 0);
+       
       } else {
         setError(result.message || 'Không thể tải tasks');
       }
@@ -52,6 +51,23 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       setLoading(false);
     }
   }, [project]);
+
+  // Handlers cho view modes
+  const handleViewDetails = (task) => {
+    setSelectedTask(task);
+    setViewMode('submit');
+  };
+
+  const handleViewHistory = (task) => {
+    setSelectedTask(task);
+    setViewMode('history');
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedTask(null);
+    setViewMode(null);
+    fetchTasks(); // Refresh tasks sau khi đóng
+  };
 
   useEffect(() => {
     if (project?.id) {
@@ -100,30 +116,6 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
     if (!deadline) return 'Không có hạn';
     const date = new Date(deadline);
     return date.toLocaleDateString('vi-VN');
-  };
-
-  const handleViewDetails = async (task) => {
-    // Fetch chi tiết task từ API
-    try {
-      console.log('📤 Fetching task detail:', task._id);
-      
-      const response = await fetch(`http://localhost:3000/api/tasks/${task._id}`);
-      const result = await response.json();
-      
-      console.log('📥 Task detail:', result);
-      
-      if (result.success) {
-        setSelectedTask(result.data);
-      }
-    } catch (err) {
-      console.error('❌ Error fetching task detail:', err);
-      // Fallback: dùng task hiện tại
-      setSelectedTask(task);
-    }
-  };
-
-  const handleCloseDetails = () => {
-    setSelectedTask(null);
   };
 
   return (
@@ -179,15 +171,22 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       </div>
 
       {/* KHU VỰC NỘI DUNG CHÍNH */}
-    <div className="flex-1 p-6 flex flex-col min-h-0 w-auto overflow-x-auto">
+    <div className={`flex-1 flex flex-col min-h-0 overflow-hidden ${selectedTask ? '' : 'p-6'}`}>
         {selectedTask ? (
-            // 1. HIỂN THỊ GIAO DIỆN NỘP CODE
-            <SubmitCode 
-                task={selectedTask}
-                internData={internData}
-                onClose={handleCloseDetails}
-                onSubmitSuccess={fetchTasks}
-            />
+            viewMode === 'submit' ? (
+                // 1. HIỂN THỊ GIAO DIỆN NỘP CODE
+                <SubmitCode 
+                    task={selectedTask}
+                    onClose={handleCloseDetails}
+                    onSubmitSuccess={handleCloseDetails}
+                />
+            ) : viewMode === 'history' ? (
+                // 2. HIỂN THỊ LỊCH SỬ SUBMISSIONS
+                <SubmissionHistory 
+                    task={selectedTask}
+                    onClose={handleCloseDetails}
+                />
+            ) : null
         ) : (
             <>
                 <h1 className="text-3xl font-bold text-white mb-6">
@@ -221,23 +220,23 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
                         {/* KPI Metrics */}
                         {!loading && !error && (
                             <div className="grid grid-cols-4 gap-4">
-                                <div className="bg-gray-900 rounded-lg p-4 border border-blue-600 shadow-lg text-center">
+                                <div className="bg-gray-900 rounded-lg p-4 border  shadow-lg text-center">
                                     <p className="text-sm text-gray-400">Tổng Task</p>
                                     <p className="text-3xl font-bold text-[#35C4F0] mt-2">{tasks.length}</p>
                                 </div>
-                                <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-lg text-center">
+                                <div className="bg-gray-900 rounded-lg p-4 border shadow-lg text-center">
                                     <p className="text-sm text-gray-400">Hoàn thành</p>
                                     <p className="text-3xl font-bold text-green-500 mt-2">
                                         {tasks.filter(t => t.status === 'done').length}
                                     </p>
                                 </div>
-                                <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-lg text-center">
+                                <div className="bg-gray-900 rounded-lg p-4 border shadow-lg text-center">
                                     <p className="text-sm text-gray-400">Đang làm</p>
                                     <p className="text-3xl font-bold text-blue-500 mt-2">
                                         {tasks.filter(t => !t.isLocked && t.status === 'pending').length}
                                     </p>
                                 </div>
-                                <div className="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-lg text-center">
+                                <div className="bg-gray-900 rounded-lg p-4 border  shadow-lg text-center">
                                     <p className="text-sm text-gray-400">Đã khóa</p>
                                     <p className="text-3xl font-bold text-gray-500 mt-2">
                                         {tasks.filter(t => t.isLocked).length}
@@ -282,17 +281,25 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
                                                         <td className="px-6 py-4 text-sm text-gray-400">{formatDeadline(task.deadline)}</td>
                                                         <td className="px-6 py-4 text-sm">{getStatusBadge(task)}</td>
                                                         <td className="px-6 py-4 text-sm">
-                                                            <button 
-                                                                onClick={() => handleViewDetails(task)} 
-                                                                disabled={task.isLocked}
-                                                                className={`font-medium transition ${
-                                                                    task.isLocked 
-                                                                        ? 'text-gray-600 cursor-not-allowed' 
-                                                                        : 'text-blue-500 hover:text-blue-400'
-                                                                }`}
-                                                            >
-                                                                {task.isLocked ? '🔒 Khóa' : 'Xem'}
-                                                            </button>
+                                                            <div className="flex gap-2">
+                                                                <button 
+                                                                    onClick={() => handleViewDetails(task)} 
+                                                                    disabled={task.isLocked}
+                                                                    className={`font-medium transition ${
+                                                                        task.isLocked 
+                                                                            ? 'text-gray-600 cursor-not-allowed' 
+                                                                            : 'text-blue-500 hover:text-blue-400'
+                                                                    }`}
+                                                                >
+                                                                    {task.isLocked ? '🔒 Khóa' : '📝 Nộp'}
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleViewHistory(task)} 
+                                                                    className="font-medium text-white  transition"
+                                                                >
+                                                                    📜 Lịch sử
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -307,8 +314,8 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
 
                   {/* Mentor AI */}
                   {activeMenu === 'mentor' && (
-                    <div className="w-full max-w-4xl h-full flex flex-col min-h-0">
-                        <MentorAIPanel />
+                    <div className="w-full h-full flex flex-col min-h-0">
+                        <MentorAIPanel tasks={tasks} project={project} />
                     </div>
                   )}
               </>

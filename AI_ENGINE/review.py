@@ -1,34 +1,33 @@
-import os 
 from huggingface_hub import InferenceClient
-# Đọc giá trị của biến môi trường có tên HUGGINGFACE_API_KEY
-HF_TOKEN = os.environ.get("HUGGINGFACE_API_KEY") 
 
-# Sử dụng biến này để khởi tạo client
+HF_TOKEN = ""
+
 client = InferenceClient(api_key=HF_TOKEN)
-
-#lay code (template) trong task tuong ung ra
-def layTemplateTrongFileTask(ten_task: str):
-    with open(f"task/{ten_task}", "r", encoding="utf-8") as f:
-        content = f.read()
-    return content
 
 def review_with_bot(code: str, template: str):
     completion = client.chat.completions.create(
-        model="Qwen/Qwen3-Coder-30B-A3B-Instruct",
+        model="Qwen/Qwen2.5-Coder-32B-Instruct",
         messages=[
-        {
-            "role": "system",
-            "content": "bạn là một người đánh giá code website. So sánh code được cung cấp với đề bài và code mẫu có sẵn. \
-                            Kiểm tra rằng các id của section, tên class chính xác như mô tả. \
-                            Không cần chính xác nội dung văn bản và kích thước các phần tử 100% \
-                            Luôn trả lời theo định dạng sau: \n\nKết quả: Pass/Không Pass\nĐiểm số: (điểm) / 100 \nFeedback: \
-                            Không sử dụng icon/emoji"
-
-        },
-        {
-            "role": "user",
-            "content": f"code được cấp: {code} \n tiêu chí: {template}"
-        }
+            {
+                "role": "system",
+                "content": (
+                    "Bạn là người chấm code website chuyên nghiệp. "
+                    "So sánh code với yêu cầu và code mẫu. "
+                    "Kiểm tra: cấu trúc HTML, class/id, logic JS. "
+                    "KHÔNG yêu cầu 100% giống về text content hay CSS. "
+                    "\n\nBẮT BUỘC trả lời theo format:\n"
+                    "Kết quả: Pass/Không Pass\n"
+                    "Điểm số: .../100\n"
+                    "Feedback: (chi tiết)\n\n"
+                    "KHÔNG dùng emoji."
+                    "Kết quả trên 60% là PASS"
+                )
+            },
+            {
+                "role": "user",
+                "content": f"Code học viên:\n{code}\n\nYêu cầu & Code mẫu:\n{template}"
+            }
         ],
+        max_tokens=1024
     )
     return completion.choices[0].message.content
