@@ -1,38 +1,41 @@
 const Intern = require('../models/Intern');
 
-// @desc    Đăng nhập hoặc Đăng ký (Find or Create)
+// @desc    Đăng nhập hoặc Đăng ký (Find, Update or Create)
 // @route   POST /api/auth/loginOrRegister
 exports.loginOrRegister = async (req, res) => {
     try {
-        const { name } = req.body; // ❌ Chỉ cần 'name'
+        const { name, specialization } = req.body;
 
-        if (!name) {
-            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp tên (name)' });
+        if (!name || !specialization) {
+            return res.status(400).json({ success: false, message: 'Vui lòng cung cấp tên (name) và chuyên môn (specialization)' });
         }
 
-        // 1. Tìm Intern bằng Tên
-        let intern = await Intern.findOne({ name });
+        // 1. Tìm, cập nhật hoặc tạo mới
+        // Logic này sẽ:
+        // - Tìm intern theo 'name'.
+        // - Nếu tìm thấy, CẬP NHẬT 'specialization' mới.
+        // - Nếu không tìm thấy, TẠO MỚI với 'name' và 'specialization'.
+        const intern = await Intern.findOneAndUpdate(
+            { name }, 
+            { name, specialization },
+            { 
+                new: true, 
+                upsert: true, 
+                runValidators: true 
+            }
+        );
 
-        if (intern) {
-            // 2. NẾU TÌM THẤY (Đăng nhập)
-            console.log(`User ${name} đã đăng nhập.`);
-        } else {
-            // 3. NẾU KHÔNG TÌM THẤY (Đăng ký)
-            intern = await Intern.create({
-                name
-                // ❌ Không cần 'role'
-            });
-            console.log(`User ${name} đã được tạo mới.`);
-        }
-        
-        // 4. Tạo token và gửi về
+        console.log(`User ${name} (Role: ${specialization}) đã đăng nhập/cập nhật.`);
+
+        // 2. Tạo token và gửi về
         const token = intern.getSignedJwtToken();
 
         res.status(200).json({
             success: true,
             token,
-            internId: intern._id
-            // ❌ Không cần 'role'
+            internId: intern._id,
+            name: intern.name,
+            specialization: intern.specialization
         });
 
     } catch (error) {
