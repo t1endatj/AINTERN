@@ -1,41 +1,116 @@
 import React, { useState } from 'react';
 
-// Dữ liệu mẫu (Giả định)
-const SAMPLE_REVIEW_OUTPUT = `
-// Review từ AI Mentor
-// Đánh giá: Tốt (9/10)
-// Lỗi nghiêm trọng: 0
-
-// 💡 Gợi ý Tối ưu hóa:
-// 1. Performance: Tránh sử dụng Array.map() trong hàm render nếu không cần thiết.
-// 2. Readability: Đặt tên biến 'i' thành 'itemIndex' để dễ đọc hơn.
-// 3. Security: Cảnh báo XSS tiềm ẩn trong hàm handleInput.
-`;
-
-export default function SubmitCode({ task, onClose }) {
+export default function SubmitCode({ task, onClose, onSubmitSuccess }) {
     const [submissionMode, setSubmissionMode] = useState('code'); // 'code' hoặc 'file'
     const [codeContent, setCodeContent] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
     const [reviewOutput, setReviewOutput] = useState('Nộp code để bắt đầu phân tích với AI Mentor...');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submissionResult, setSubmissionResult] = useState(null);
 
-    const handleSubmit = () => {
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedFile(file);
+        }
+    };
+
+    const handleSubmit = async () => {
+        // Validation
         if (submissionMode === 'code' && codeContent.trim() === '') {
             alert('Vui lòng dán mã nguồn vào ô nhập liệu!');
             return;
         }
-        if (submissionMode === 'file') {
-             alert('Chế độ Nộp File đang được phát triển. Vui lòng sử dụng Nộp Code.');
-             return;
+        if (submissionMode === 'file' && !selectedFile) {
+            alert('Vui lòng chọn file để upload!');
+            return;
         }
 
-        setIsSubmitting(true);
-        setReviewOutput('Đang gửi mã nguồn và chờ Code Review từ AI Mentor... (Vui lòng đợi 3s)');
-        
-        // GIẢ LẬP GỌI API (Thay thế bằng fetch/axios thực tế)
-        setTimeout(() => {
-            setReviewOutput(SAMPLE_REVIEW_OUTPUT);
+        try {
+            setIsSubmitting(true);
+            setReviewOutput('Đang gửi mã nguồn và chờ Code Review từ AI Mentor...');
+            setSubmissionResult(null);
+
+            // Lấy token từ localStorage
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Vui lòng đăng nhập lại!');
+                return;
+            }
+
+            // Chuẩn bị FormData
+            const formData = new FormData();
+            formData.append('taskId', task._id || task.id);
+
+            if (submissionMode === 'code') {
+                // Tạo blob từ code content
+                const blob = new Blob([codeContent], { type: 'text/plain' });
+                formData.append('codeFile', blob, 'submission.js');
+            } else {
+                formData.append('codeFile', selectedFile);
+            }
+
+            // Call API
+            const response = await fetch('http://localhost:3000/api/submissions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+            console.log('📥 Submission result:', result);
+
+            if (result.success) {
+                const data = result.data;
+                setSubmissionResult({
+                    passed: data.passed,
+                    score: data.score,
+                    feedback: data.feedback
+                });
+
+                // Format review output
+                const reviewText = `
+═══════════════════════════════════════════════
+🎯 KẾT QUẢ ĐÁNH GIÁ
+═══════════════════════════════════════════════
+
+✨ Trạng thái: ${data.passed ? '✅ ĐẠT' : '❌ CHƯA ĐẠT'}
+📊 Điểm số: ${data.score}/100
+
+───────────────────────────────────────────────
+📝 NHẬN XÉT TỪ AI MENTOR:
+───────────────────────────────────────────────
+
+${data.feedback || 'Không có feedback từ AI.'}
+
+═══════════════════════════════════════════════
+                `;
+                setReviewOutput(reviewText);
+
+                // Gọi callback nếu có
+                if (onSubmitSuccess) {
+                    onSubmitSuccess(data);
+                }
+
+                // Hiển thị thông báo
+                if (data.passed) {
+                    alert('🎉 Chúc mừng! Bạn đã hoàn thành task này!');
+                } else {
+                    alert('💪 Cố gắng thêm! Hãy xem feedback và thử lại.');
+                }
+            } else {
+                setReviewOutput(`❌ LỖI: ${result.message}`);
+                alert(`Lỗi: ${result.message}`);
+            }
+        } catch (error) {
+            console.error('❌ Submit error:', error);
+            setReviewOutput(`❌ LỖI KẾT NỐI: ${error.message}\n\nKiểm tra backend có đang chạy không?`);
+            alert('Không thể kết nối đến server!');
+        } finally {
             setIsSubmitting(false);
-        }, 3000);
+        }
     };
 
     return (
@@ -79,14 +154,23 @@ export default function SubmitCode({ task, onClose }) {
                         <textarea 
                             value={codeContent}
                             onChange={(e) => setCodeContent(e.target.value)}
-                            className="flex-1 border-dashed border-2 border-gray-600 rounded-lg flex items-center justify-center bg-gray-800/50 text-gray-400"
+                            className="flex-1 border-dashed border-2 border-gray-600 rounded-lg p-3 bg-gray-800 text-gray-300 font-mono resize-none focus:outline-none focus:border-blue-500"
                             placeholder="Dán mã nguồn của bạn vào đây..."
                             disabled={isSubmitting}
                         />
                     ) : (
-                        <div className="flex-1 border-dashed border-2 border-gray-600 rounded-lg flex items-center justify-center bg-gray-800/50 text-gray-400">
-                            <p>Kéo thả hoặc nhấn để chọn file mã nguồn (.js, .css, ...)</p>
-                            <input type="file" className="absolute w-full h-full opacity-0 cursor-pointer" />
+                        <div className="flex-1 border-dashed border-2 border-gray-600 rounded-lg flex flex-col items-center justify-center bg-gray-800/50 text-gray-400 relative">
+                            <p className="mb-2">📁 Kéo thả hoặc nhấn để chọn file</p>
+                            {selectedFile && (
+                                <p className="text-green-400 text-sm">✅ {selectedFile.name}</p>
+                            )}
+                            <input 
+                                type="file" 
+                                onChange={handleFileChange}
+                                className="absolute w-full h-full opacity-0 cursor-pointer" 
+                                accept=".js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.html,.css"
+                                disabled={isSubmitting}
+                            />
                         </div>
                     )}
 
@@ -94,20 +178,36 @@ export default function SubmitCode({ task, onClose }) {
                     <button 
                         onClick={handleSubmit} 
                         className={`mt-3 px-6 py-2 w-full font-semibold rounded-lg transition ${
-                            isSubmitting ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-black'
+                            isSubmitting ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'
                         }`}
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? 'Đang Xử Lý Review...' : 'Nộp'}
+                        {isSubmitting ? '⏳ Đang Xử Lý Review...' : '🚀 Nộp Bài'}
                     </button>
                 </div>
                 
                 {/* 2. Vùng Review Trả về (Tỷ lệ 60%) */}
                 <div className="flex-7 bg-gray-900 border border-gray-700 rounded-lg p-4 flex flex-col">
-                    <h3 className="text-lg font-bold text-[#35C4F0] mb-3 border-b border-gray-800 pb-2">
-                        Kết quả Code Review Trả về
-                    </h3>
-                    <pre className="text-gray-300 whitespace-pre-wrap font-mono overflow-auto flex-1">
+                    <div className="flex justify-between items-center mb-3 border-b border-gray-800 pb-2">
+                        <h3 className="text-lg font-bold text-[#35C4F0]">
+                            🤖 Kết quả Code Review
+                        </h3>
+                        {submissionResult && (
+                            <div className="flex gap-3">
+                                <span className={`px-3 py-1 rounded text-sm font-semibold ${
+                                    submissionResult.passed 
+                                        ? 'bg-green-600 text-white' 
+                                        : 'bg-red-600 text-white'
+                                }`}>
+                                    {submissionResult.passed ? '✅ ĐẠT' : '❌ CHƯA ĐẠT'}
+                                </span>
+                                <span className="px-3 py-1 rounded text-sm font-semibold bg-blue-600 text-white">
+                                    📊 {submissionResult.score}/100
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                    <pre className="text-gray-300 whitespace-pre-wrap font-mono overflow-auto flex-1 text-sm">
                         {reviewOutput}
                     </pre>
                 </div>

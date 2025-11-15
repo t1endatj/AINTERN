@@ -21,10 +21,10 @@ app = FastAPI()
 class ChatPayload(BaseModel):
     message: str
 
-# MODEL CODE: Nhận JSON { "code": "...", "task_id": "..." }
+# MODEL CODE: Nhận JSON { "code": "...", "template": "..." }
 class CodePayload(BaseModel):
     code: str
-    task_id: str 
+    template: str 
 
 # ===================================================================
 # ENDPOINTS (LUỒNG POST TRẢ VỀ NGAY)
@@ -57,15 +57,12 @@ async def send_chat_to_py(data: ChatPayload):
 # -------------------------------------------------------------------
 @app.post("/send_code")
 async def send_code_to_py(data: CodePayload):
-    """ Nhận code và task_id, chạy review và trả kết quả ngay lập tức. """
+    """ Nhận code và template, chạy review và trả kết quả ngay lập tức. """
     code_content = data.code
-    task_id = data.task_id
-    print(f"[{time.strftime('%H:%M:%S')}] Nhận Code cho Task {task_id}")
+    template_content = data.template
+    print(f"[{time.strftime('%H:%M:%S')}] Nhận Code với template length: {len(template_content)}")
 
     try:
-        # Lấy template từ file task tương ứng
-        template_content = layTemplateTrongFileTask(task_id)
-        
         # Gọi hàm review từ review.py (gọi Hugging Face API)
         review_text = review_with_bot(code_content, template_content)
         
@@ -83,9 +80,6 @@ async def send_code_to_py(data: CodePayload):
             }
         }
         
-    except FileNotFoundError:
-        print(f"Lỗi: Không tìm thấy file template task '{task_id}'.")
-        raise HTTPException(status_code=404, detail=f"Lỗi: Không tìm thấy file template task '{task_id}'.")
     except Exception as e:
         print(f"Lỗi khi gọi Review Bot: {e}")
-        raise HTTPException(status_code=500, detail="Lỗi: AI Review không phản hồi.")
+        raise HTTPException(status_code=500, detail=f"Lỗi: AI Review không phản hồi. Chi tiết: {str(e)}")

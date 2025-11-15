@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import ProfileImage from '../assets/account.png'; 
 import SubmitCode from './SubmitCode'; 
+import SubmissionHistory from './SubmissionHistory';
 import MentorAIPanel from './Chatbot/MentorAI';
 
 export default function Dashboard({ project, internData, onBackToInfo, onLogout }) {
@@ -10,6 +11,7 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
   const [activeMenu, setActiveMenu] = useState('task');
   const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [viewMode, setViewMode] = useState(null); // 'submit' hoặc 'history'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -52,6 +54,23 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       setLoading(false);
     }
   }, [project]);
+
+  // Handlers cho view modes
+  const handleViewDetails = (task) => {
+    setSelectedTask(task);
+    setViewMode('submit');
+  };
+
+  const handleViewHistory = (task) => {
+    setSelectedTask(task);
+    setViewMode('history');
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedTask(null);
+    setViewMode(null);
+    fetchTasks(); // Refresh tasks sau khi đóng
+  };
 
   useEffect(() => {
     if (project?.id) {
@@ -100,30 +119,6 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
     if (!deadline) return 'Không có hạn';
     const date = new Date(deadline);
     return date.toLocaleDateString('vi-VN');
-  };
-
-  const handleViewDetails = async (task) => {
-    // Fetch chi tiết task từ API
-    try {
-      console.log('📤 Fetching task detail:', task._id);
-      
-      const response = await fetch(`http://localhost:3000/api/tasks/${task._id}`);
-      const result = await response.json();
-      
-      console.log('📥 Task detail:', result);
-      
-      if (result.success) {
-        setSelectedTask(result.data);
-      }
-    } catch (err) {
-      console.error('❌ Error fetching task detail:', err);
-      // Fallback: dùng task hiện tại
-      setSelectedTask(task);
-    }
-  };
-
-  const handleCloseDetails = () => {
-    setSelectedTask(null);
   };
 
   return (
@@ -181,13 +176,20 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
       {/* KHU VỰC NỘI DUNG CHÍNH */}
     <div className="flex-1 p-6 flex flex-col min-h-0 w-auto overflow-x-auto">
         {selectedTask ? (
-            // 1. HIỂN THỊ GIAO DIỆN NỘP CODE
-            <SubmitCode 
-                task={selectedTask}
-                internData={internData}
-                onClose={handleCloseDetails}
-                onSubmitSuccess={fetchTasks}
-            />
+            viewMode === 'submit' ? (
+                // 1. HIỂN THỊ GIAO DIỆN NỘP CODE
+                <SubmitCode 
+                    task={selectedTask}
+                    onClose={handleCloseDetails}
+                    onSubmitSuccess={handleCloseDetails}
+                />
+            ) : viewMode === 'history' ? (
+                // 2. HIỂN THỊ LỊCH SỬ SUBMISSIONS
+                <SubmissionHistory 
+                    task={selectedTask}
+                    onClose={handleCloseDetails}
+                />
+            ) : null
         ) : (
             <>
                 <h1 className="text-3xl font-bold text-white mb-6">
@@ -282,17 +284,25 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
                                                         <td className="px-6 py-4 text-sm text-gray-400">{formatDeadline(task.deadline)}</td>
                                                         <td className="px-6 py-4 text-sm">{getStatusBadge(task)}</td>
                                                         <td className="px-6 py-4 text-sm">
-                                                            <button 
-                                                                onClick={() => handleViewDetails(task)} 
-                                                                disabled={task.isLocked}
-                                                                className={`font-medium transition ${
-                                                                    task.isLocked 
-                                                                        ? 'text-gray-600 cursor-not-allowed' 
-                                                                        : 'text-blue-500 hover:text-blue-400'
-                                                                }`}
-                                                            >
-                                                                {task.isLocked ? '🔒 Khóa' : 'Xem'}
-                                                            </button>
+                                                            <div className="flex gap-2">
+                                                                <button 
+                                                                    onClick={() => handleViewDetails(task)} 
+                                                                    disabled={task.isLocked}
+                                                                    className={`font-medium transition ${
+                                                                        task.isLocked 
+                                                                            ? 'text-gray-600 cursor-not-allowed' 
+                                                                            : 'text-blue-500 hover:text-blue-400'
+                                                                    }`}
+                                                                >
+                                                                    {task.isLocked ? '🔒 Khóa' : '📝 Nộp'}
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleViewHistory(task)} 
+                                                                    className="font-medium text-purple-500 hover:text-purple-400 transition"
+                                                                >
+                                                                    📜 Lịch sử
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))}

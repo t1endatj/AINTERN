@@ -19,33 +19,48 @@ export default function MentorAIPanel() {
         // 2. Bắt đầu tải và gọi API
         setIsLoading(true);
 
-        // GIẢ LẬP PHẢN HỒI TỪ AI (Thay thế bằng fetch/axios thực tế)
         try {
-                const response = await fetch('http://127.0.0.1:3000/api/ai/chat', { 
+            // Lấy token từ localStorage
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Vui lòng đăng nhập lại!');
+            }
+
+            const response = await fetch('http://localhost:3000/api/ai/chat', { 
                 method: 'POST',
                 headers: {
-                'Content-Type': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ message: messageText }),
             });
 
-            // THÊM: Xử lý lỗi HTTP trước khi parse JSON
+            // Xử lý lỗi HTTP trước khi parse JSON
             if (!response.ok) { 
-                throw new Error(`Lỗi HTTP ${response.status}: Vui lòng kiểm tra Server Python.`);
+                throw new Error(`Lỗi HTTP ${response.status}: Vui lòng kiểm tra Server Backend/AI Engine.`);
             }
             
             const data = await response.json();
+            console.log('📥 AI response:', data);
             
-            // SỬA: Đọc trường 'reply' từ aiController.js
+            // Đọc trường 'reply' từ aiController.js
             const aiResponse = { 
                 id: Date.now() + 1, 
                 role: 'assistant', 
-                content: data.reply || "AI Mentor không phản hồi.", // ĐỌC TRƯỜNG 'reply'
+                content: data.reply || "AI Mentor không phản hồi.", 
             };
             
             setMessages(prev => [...prev, aiResponse]);
         } catch (error) {
-            console.error('Error sending message:', error);
+            console.error('❌ Error sending message:', error);
+            
+            // Hiển thị lỗi cho user
+            const errorMessage = { 
+                id: Date.now() + 1, 
+                role: 'assistant', 
+                content: `❌ Lỗi: ${error.message}\n\nKiểm tra:\n- Backend có chạy không? (port 3000)\n- AI Engine có chạy không? (port 8000)\n- Token còn hợp lệ không?`, 
+            };
+            setMessages(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
         }
