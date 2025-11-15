@@ -12,9 +12,22 @@ const SAMPLE_TASKS = [
 ];
 
 export default function Dashboard({ project, internData, onBackToInfo, onLogout }) {
+  console.log('🎨 Dashboard rendered with:', { project, internData });
+  
   const [activeMenu, setActiveMenu] = useState('task'); // Đặt mặc định là 'task'
   const [tasks] = useState(SAMPLE_TASKS);
   const [selectedTask, setSelectedTask] = useState(null);
+
+  // Kiểm tra props
+  if (!internData) {
+    console.error('❌ Dashboard: internData is missing!');
+    return <div className="text-white p-4">Loading intern data...</div>;
+  }
+  
+  if (!project) {
+    console.error('❌ Dashboard: project is missing!');
+    return <div className="text-white p-4">Loading project data...</div>;
+  }
 
   const getStatusBadge = (status) => {
     const statusConfig = {
@@ -92,7 +105,7 @@ export default function Dashboard({ project, internData, onBackToInfo, onLogout 
             </div>
         </div>
         <div className="text-xs text-gray-500 p-3 border-t border-gray-800 space-y-2">
-            <p>Vị trí: {internData?.role.toUpperCase() || 'DEVELOPER'}</p>
+            <p>Vị trí: {internData?.specialization?.toUpperCase() || 'DEVELOPER'}</p>
             <p>AINTERN v1.0</p>
             <button
               onClick={onLogout}

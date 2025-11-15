@@ -2,10 +2,6 @@ const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken') 
 
 const InternSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    role: { type: String, required: true, enum: ['frontend', 'backend', 'data'] },
-    level: { type: Number, default: 1 },
-    createdAt: { type: Date, default: Date.now },
     name: { 
         type: String, 
         required: true,
@@ -14,12 +10,21 @@ const InternSchema = new mongoose.Schema({
     },
     specialization: {
         type: String,
-        enum: ['front_end', 'back_end'],
-        required: [true, 'Vui lòng cung cấp chuyên môn (specialization)']
+        enum: ['frontend', 'backend', 'data'],
+        required: false
     },
     level: { 
         type: Number, 
         default: 1 
+    },
+    currentView: {
+        type: String,
+        enum: ['home', 'welcome', 'info', 'dashboard'],
+        default: 'home'
+    },
+    selectedProject: {
+        type: Object,
+        default: null
     },
     createdAt: { 
         type: Date, 

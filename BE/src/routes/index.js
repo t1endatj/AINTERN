@@ -6,13 +6,19 @@ const projectController = require('../controllers/projectController')
 const taskController = require('../controllers/taskController')
 const submissionController = require('../controllers/submissionController')
 const aiController = require('../controllers/aiController')
+const authController = require('../controllers/authController')
 
 // ✅ 1. Import middleware 'protect'
 const { protect } = require('../middleware/authMiddleware')
 
+// Auth - Đăng nhập/Đăng ký
+router.post('/auth/login', authController.loginOrRegister)
+
 // Intern
 router.post('/interns', internController.createIntern)
 router.get('/interns', internController.getAllInterns)
+router.get('/interns/:id', internController.getInternById)
+router.put('/interns/:id', internController.updateIntern)
 
 // Project
 // ✅ 2. Thêm 'protect' vào route này

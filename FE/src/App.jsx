@@ -42,9 +42,12 @@ function App() {
         }
         
         console.log('✅ Đã restore trạng thái:', intern);
+        return intern; // ✅ Thêm return
       }
+      return null; // ✅ Trả về null nếu không thành công
     } catch (error) {
       console.error('Lỗi khi load trạng thái:', error);
+      return null; // ✅ Trả về null nếu có lỗi
     }
   };
 
@@ -74,63 +77,86 @@ function App() {
   };
 
   const handleSelectStart = async (name, role) => {
-    const userData = { name, role };
-    
-    // Lưu vào MongoDB Database
+    // Gọi API login/register với username và specialization
     try {
-      const response = await fetch('http://localhost:3000/api/interns', {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({ 
+          name, 
+          specialization: role 
+        }),
       });
       
       const result = await response.json();
+      console.log('📥 Login response:', result);
+      
       if (result.success) {
-        setInternData(result.data);
+        // Lưu token vào localStorage
+        localStorage.setItem('token', result.token);
         
-        // Lưu ID vào sessionStorage để restore khi refresh
-        sessionStorage.setItem('internId', result.data._id);
+        // Lưu internId vào sessionStorage
+        sessionStorage.setItem('internId', result.internId);
         
-        if (result.isReturningUser) {
-          // User cũ - restore trạng thái
-          if (result.data.currentView && result.data.currentView !== 'home') {
-            setView(result.data.currentView);
-            if (result.data.selectedProject) {
-              setSelectedProject(result.data.selectedProject);
+        // Fetch intern từ database để check trạng thái
+        const internResponse = await fetch(`http://localhost:3000/api/interns/${result.internId}`);
+        const internResult = await internResponse.json();
+        
+        console.log('📥 Intern data from DB:', internResult);
+        
+        if (internResult.success) {
+          const intern = internResult.data;
+          setInternData(intern);
+          
+          // Check xem user đã có trạng thái chưa
+          if (intern.currentView && intern.currentView !== 'home') {
+            // User cũ - restore trạng thái cũ
+            setView(intern.currentView);
+            
+            if (intern.selectedProject) {
+              setSelectedProject(intern.selectedProject);
             }
+            
+            alert(`Chào mừng trở lại, ${name}! ✨`);
+            console.log('✅ User cũ - restored view:', intern.currentView);
           } else {
+            // User mới - chuyển sang welcome
             setView('welcome');
+            alert(`Chào mừng ${name} đến với AINTERN! 🎉`);
+            console.log('✅ User mới - chuyển sang welcome');
           }
-          alert(`Chào mừng trở lại, ${name}! ✨`);
-        } else {
-          // User mới
-          setView('welcome');
-          alert(`Chào mừng ${name} đến với AINTERN! 🎉`);
         }
         
-        console.log('✅', result.message, result.data);
+        console.log('✅ Đăng nhập thành công');
       } else {
-        alert('Lỗi khi lưu vào database!');
+        alert('Lỗi: ' + result.message);
       }
     } catch (error) {
-      console.error('Lỗi khi lưu vào database:', error);
+      console.error('Lỗi khi đăng nhập:', error);
       alert('Không thể kết nối đến server!');
     }
   };
 
   const handleProjectSubmit = async ({ selectedProject, allProjects }) => {
+    console.log('📦 handleProjectSubmit called with:', { selectedProject, allProjects });
+    
     setSelectedProject(selectedProject);
     setAllProjects(allProjects || []);
     
-    // Lưu project đã chọn vào database
+    console.log('📦 State updated - selectedProject:', selectedProject);
+    console.log('📦 internData before update:', internData);
+    
+    // Lưu project đã chọn vào database và chuyển thẳng sang dashboard
     await updateInternState({
       selectedProject,
-      currentView: 'info'
+      currentView: 'dashboard'
     });
     
-    setView('info');
+    console.log('✅ Database updated, now setting view to dashboard');
+    setView('dashboard');
+    console.log('✅ View state set to dashboard');
   };
 
   const handleProjectClick = async (project) => {
@@ -178,6 +204,9 @@ function App() {
   }
 
   if (view === 'dashboard') {
+    console.log('🎯 Rendering Dashboard with project:', selectedProject);
+    console.log('🎯 internData:', internData);
+    
     return <Dashboard 
               project={selectedProject} 
               internData={internData} 
